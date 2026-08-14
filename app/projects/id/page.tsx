@@ -21,6 +21,13 @@ const PROJECT_DETAILS: Record<
   },
 };
 
+export async function generateStaticParams() {
+  const ids = Object.keys(PROJECT_DETAILS);
+  return ids.map((id) => ({
+    id: id,
+  }));
+}
+
 export default async function ProjectDetailPage({
   params,
 }: {
