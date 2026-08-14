@@ -31,17 +31,17 @@ export async function generateStaticParams() {
 export default async function ProjectDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }> | { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  // 兼容处理 params 可能为 Promise 或普通对象的情况，防止未来 Next.js 版本差异导致崩溃
-  const resolvedParams = params instanceof Promise ? await params : params;
-  
-  // 安全获取 id，如果为空则赋予默认值防崩溃
-  const id = resolvedParams?.id || "project";
-  
+  // 在 Next.js 15+ 中，params 统一为 Promise，直接 await 解包最安全
+  const resolvedParams = await params;
+  const rawId = resolvedParams?.id;
+
+  // 如果没有匹配到对应的项目，提供安全的默认展示，绝对避免 undefined 报错
+  const id = rawId && PROJECT_DETAILS[rawId] ? rawId : "default";
+
   const project = PROJECT_DETAILS[id] || {
-    // 使用 ?. 可选链和 || 默认值，彻底杜绝 replace 报错
-    title: id?.replace(/-/g, " ").toUpperCase() || "PROJECT",
+    title: rawId ? rawId.replace(/-/g, " ").toUpperCase() : "PROJECT",
     category: "Selected Project",
     year: "2026",
     description: "A series of visual works.",
