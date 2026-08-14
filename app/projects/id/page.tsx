@@ -26,9 +26,12 @@ export default async function ProjectDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
+  const resolvedParams = await params;
+  // 安全获取 id，如果为空则赋予默认值防崩溃
+  const id = resolvedParams?.id || "project";
+  
   const project = PROJECT_DETAILS[id] || {
-    title: id.replace("-", " ").toUpperCase(),
+    title: typeof id === "string" ? id.replace(/-/g, " ").toUpperCase() : "PROJECT",
     category: "Selected Project",
     year: "2026",
     description: "A series of visual works.",
