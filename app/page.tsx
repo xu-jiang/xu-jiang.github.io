@@ -34,8 +34,12 @@ const TABLET_PATTERNS: number[][] = [
   [60, 40],
 ];
 
-/* --- 手机端 (< 768px): 严格 1 列 --- */
-const MOBILE_PATTERNS: number[][] = [[100]];
+/* --- 手机端 (< 768px): 严格 2 列比例预设池 --- */
+const MOBILE_PATTERNS: number[][] = [
+  [50, 50],
+  [56, 44],
+  [46, 54],
+];
 
 // Fisher-Yates 随机打乱算法
 function shuffleArray<T>(array: T[]): T[] {
@@ -49,7 +53,7 @@ function shuffleArray<T>(array: T[]): T[] {
 
 export default function Home() {
   const [photos, setPhotos] = useState<Photo[]>([]);
-  const [colWidths, setColWidths] = useState<number[]>([38, 16, 28, 18]);
+  const [colWidths, setColWidths] = useState<number[]>([50, 50]);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -57,8 +61,8 @@ export default function Home() {
     const getResponsivePattern = () => {
       const width = window.innerWidth;
       if (width < 768) {
-        // 手机端 (< 768px)：固定 1 列
-        return MOBILE_PATTERNS[0];
+        // 手机端 (< 768px)：固定 2 列
+        return MOBILE_PATTERNS[Math.floor(Math.random() * MOBILE_PATTERNS.length)];
       } else if (width < 1024) {
         // 平板端 (768px ~ 1023px)：固定 2 列
         return TABLET_PATTERNS[Math.floor(Math.random() * TABLET_PATTERNS.length)];
@@ -103,7 +107,7 @@ export default function Home() {
       setIsReady(true);
     }, 60);
 
-    // 4. 监听 resize 动态调整列数与布局比例，实现自动补位与流式变动
+    // 4. 监听 resize 动态调整列数与布局比例
     const handleResize = () => {
       setColWidths(getResponsivePattern());
     };
@@ -156,10 +160,11 @@ export default function Home() {
     );
   }
 
-  const CONTAINER_PADDING = "px-4 md:px-8";
+  // 统一左右留白边距定义
+  const CONTAINER_PADDING = "px-5 md:px-8";
   const currentColumnCount = colWidths.length;
 
-  // 动态将所有照片按当前的列数进行均分流式分配（自动补位）
+  // 动态将所有照片按当前的列数进行均分流式分配
   const columnsData: Photo[][] = Array.from({ length: currentColumnCount }, () => []);
   photos.forEach((photo, index) => {
     const targetColIndex = index % currentColumnCount;
@@ -174,21 +179,23 @@ export default function Home() {
         inset-0
         w-screen
         h-screen
-        overflow-y-auto md:overflow-hidden
+        overflow-hidden
         bg-white
         text-black
         font-sans
         selection:bg-none
         cursor-pointer
         box-border
+        touch-none
       "
     >
-      {/* Header */}
+      {/* Header - 使用 inset-x-0 和 box-border 确保边距与下方容器精准一致 */}
       <header
         className={`
-          fixed top-0 left-0 w-full h-[8vh] md:h-[12vh] z-50
+          fixed top-0 inset-x-0 h-[8vh] md:h-[12vh] z-50
           flex items-center justify-between
           ${CONTAINER_PADDING}
+          box-border
           pointer-events-none
           bg-white/90 backdrop-blur-sm md:bg-transparent md:backdrop-blur-none
         `}
@@ -207,12 +214,13 @@ export default function Home() {
       <div
         className={`
           w-full h-full
-          pt-[8vh] md:pt-[12vh] pb-8
+          pt-[8vh] md:pt-[12vh] pb-5 md:pb-8
           ${CONTAINER_PADDING}
           box-border
+          overflow-hidden
         `}
       >
-        <div className="w-full h-full flex flex-col md:flex-row justify-between items-start gap-4 md:gap-6 box-border overflow-y-auto md:overflow-hidden">
+        <div className="w-full h-full flex flex-row justify-between items-start gap-4 md:gap-6 box-border overflow-hidden">
           {colWidths.map((width, colIndex) => {
             const columnPhotos = columnsData[colIndex] || [];
 
@@ -220,14 +228,13 @@ export default function Home() {
               <div
                 key={colIndex}
                 style={{
-                  width: window.innerWidth >= 768 ? `${width}%` : "100%",
+                  width: `${width}%`,
                 }}
                 className="
-                  w-full md:w-auto
-                  h-auto md:h-full
+                  h-full
                   flex flex-col gap-4 md:gap-6
                   min-w-0
-                  overflow-visible md:overflow-hidden
+                  overflow-hidden
                   transition-[width] duration-700 ease-out
                 "
               >

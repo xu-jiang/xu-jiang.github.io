@@ -360,7 +360,8 @@ export default function ProjectsPage() {
             })}
           </div>
 
-          <div className="flex flex-col gap-4 bg-neutral-50 p-5 rounded-xl border border-black/5 mt-2 mb-8">
+          {/* 移除原本卡片边框/背景/内边距，保持纯净大方的通透显示 */}
+          <div className="flex flex-col gap-3 mt-2 mb-8">
             <div className="flex items-center justify-between text-[10px] tracking-[0.2em] uppercase text-neutral-400">
               <span>{activeProject.category}</span>
               <span>{activeProject.year}</span>
@@ -370,9 +371,10 @@ export default function ProjectsPage() {
               {activeDescription}
             </p>
 
+            {/* 移除背景色与圆角，无边框限定 */}
             <div 
               onClick={openFullscreen}
-              className="relative w-full aspect-[4/3] bg-neutral-200 rounded-lg overflow-hidden mt-2 cursor-pointer flex items-center justify-center"
+              className="relative w-full mt-2 cursor-pointer flex items-center justify-center"
               role="button"
               tabIndex={0}
               onKeyDown={(e) => e.key === "Enter" && openFullscreen(e)}
@@ -380,7 +382,7 @@ export default function ProjectsPage() {
               <img
                 src={currentCoverSrc}
                 alt={activeTitle}
-                className="w-full h-full object-contain"
+                className="w-full h-auto block object-contain"
               />
             </div>
           </div>

@@ -13,16 +13,17 @@ export default function Header() {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-[100] flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-8 py-4 sm:py-8 text-sm sm:text-base tracking-[0.2em] bg-white/80 backdrop-blur-sm pointer-events-auto gap-3 sm:gap-0">
-      {/* 移动端强制单独一行，加 whitespace-nowrap 绝不折行 */}
+    <header className="fixed top-0 inset-x-0 z-[100] flex flex-col sm:flex-row items-start sm:items-center justify-between px-5 sm:px-8 py-3.5 sm:py-8 text-sm sm:text-base tracking-[0.2em] bg-white/90 backdrop-blur-sm pointer-events-auto box-border gap-2 sm:gap-0">
+      {/* 手机端第一行：品牌名 */}
       <Link
         href="/"
-        className="font-bold text-black uppercase hover:opacity-60 transition-opacity whitespace-nowrap text-xs sm:text-base"
+        className="font-bold text-black uppercase hover:opacity-60 transition-opacity whitespace-nowrap text-sm sm:text-base"
       >
         XU JIANGQI
       </Link>
 
-      <nav className="flex gap-4 sm:gap-8 uppercase text-gray-800 text-[10px] sm:text-sm tracking-[0.15em] font-semibold">
+      {/* 手机端第二行：导航菜单左对齐，使用固定间距 (gap-5) */}
+      <nav className="flex justify-start gap-5 sm:gap-8 uppercase text-gray-800 text-xs sm:text-sm tracking-[0.15em] font-semibold">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
