@@ -215,7 +215,7 @@ export default function ProjectsPage() {
     touchStartRef.current = null;
   };
 
-  // 全屏触控手势逻辑（兼顾轻点跳转与左右滑动手势）
+  // 全屏触控手势逻辑（只保留左右滑动手势，移除轻触判定）
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartRef.current = {
       x: e.touches[0].clientX,
@@ -235,15 +235,13 @@ export default function ProjectsPage() {
     const diffX = endX - startX;
     const diffY = endY - startY;
 
-    // 如果滑动距离超过 40px 则判断为左右划动，否则认定为轻触（点按大图）直接切下一张
+    // 仅当水平滑动距离超过 40px 时判定为划动，轻触交给 onClick 独立处理
     if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
       if (diffX < 0) {
         nextImage();
       } else {
         previousImage();
       }
-    } else if (Math.abs(diffX) < 10 && Math.abs(diffY) < 10) {
-      nextImage();
     }
 
     touchStartRef.current = null;
@@ -743,7 +741,7 @@ export default function ProjectsPage() {
           </svg>
         </button>
 
-        {/* 中间大图全屏容器：支持触摸点击/触控直接切换下一张 */}
+        {/* 中间大图全屏容器：滑动由 onTouchEnd 管理，单击由 onClick 统一管理 */}
         <div
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
