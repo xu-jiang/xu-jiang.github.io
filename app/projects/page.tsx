@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
 import { PROJECTS, Project } from "@/data/projects";
 
@@ -32,6 +32,9 @@ export default function ProjectsPage() {
   const [language, setLanguage] = useState<"FR" | "EN">("FR");
   const [coverLoaded, setCoverLoaded] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
+
+  // 触摸手势相关的 Ref，记录起点坐标和时间，避免触发不必要的渲染
+  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
 
   // 初始化随机选择项目
   useEffect(() => {
@@ -153,6 +156,47 @@ export default function ProjectsPage() {
     });
   }, [activeProject.images.length]);
 
+  // 全屏触控手势逻辑（同时兼容点击与左右滑动）
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartRef.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+      time: Date.now(),
+    };
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+
+    const startX = touchStartRef.current.x;
+    const startY = touchStartRef.current.y;
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+
+    const diffX = endX - startX;
+    const diffY = endY - startY;
+
+    // 如果横向滑动距离超过 40px 且大于纵向偏移，判断为“左右滑动”
+    if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
+      if (diffX < 0) {
+        nextImage(); // 向左滑 -> 下一张
+      } else {
+        previousImage(); // 向右滑 -> 上一张
+      }
+    } else if (Math.abs(diffX) < 10 && Math.abs(diffY) < 10) {
+      // 如果滑动距离极小（< 10px），判定为“单点点击”
+      // 根据点击位置是屏幕左半边还是右半边进行切换
+      const screenWidth = window.innerWidth;
+      if (endX < screenWidth / 2) {
+        previousImage();
+      } else {
+        nextImage();
+      }
+    }
+
+    touchStartRef.current = null;
+  };
+
   useEffect(() => {
     if (!fullscreen) return;
 
@@ -240,7 +284,7 @@ export default function ProjectsPage() {
         }
       `}</style>
 
-      {/* HEADER: 移动端折行居左/桌面端单行两端对齐 */}
+      {/* HEADER */}
       <header className="fixed top-0 left-0 z-40 w-full px-4 md:px-[4vw] py-3 md:py-[3vh] flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-0 bg-white/90 backdrop-blur-md md:bg-white transform-gpu border-b border-neutral-100 md:border-none">
         <Link
           href="/"
@@ -262,7 +306,7 @@ export default function ProjectsPage() {
         </nav>
       </header>
 
-      {/* MAIN CONTENT: 移动端 padding-top 加大以容纳两行 Header */}
+      {/* MAIN CONTENT */}
       <div className="pt-[11vh] md:pt-[15vh] px-4 md:px-[4vw] h-full overflow-y-auto md:overflow-hidden flex-1 pb-12 md:pb-[4vh]">
         
         {/* ==================== 移动端专属布局 ==================== */}
@@ -586,6 +630,8 @@ export default function ProjectsPage() {
         role="dialog"
         aria-modal="true"
         aria-label={activeProject.title}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
         className={`fixed inset-0 z-[100] bg-black text-white flex flex-col justify-between select-none transition-opacity duration-200 ease-out transform-gpu ${
           fullscreen
             ? "opacity-100 pointer-events-auto"
@@ -622,7 +668,10 @@ export default function ProjectsPage() {
 
         <button
           type="button"
-          onClick={closeFullscreen}
+          onClick={(e) => {
+            e.stopPropagation();
+            closeFullscreen();
+          }}
           title={language === "FR" ? "Fermer (ESC)" : "Close (ESC)"}
           className="absolute top-16 right-4 md:top-8 md:right-8 z-50 p-2 md:p-2.5 bg-white/10 hover:bg-white/25 rounded-full text-white transition-all backdrop-blur-sm border border-white/10 transform-gpu cursor-pointer"
         >
@@ -667,13 +716,14 @@ export default function ProjectsPage() {
           </div>
         )}
 
+        {/* 桌面端左右箭头指示 hover 区域 */}
         <div
           onClick={(e) => {
             e.stopPropagation();
             previousImage();
           }}
           title={language === "FR" ? "Précédent" : "Previous"}
-          className="absolute left-0 top-12 md:top-0 bottom-0 w-[50%] z-30 flex items-center justify-start pl-6 group cursor-pointer"
+          className="absolute left-0 top-12 md:top-0 bottom-0 w-[50%] z-30 hidden md:flex items-center justify-start pl-6 group cursor-pointer"
           role="button"
           tabIndex={0}
         >
@@ -688,26 +738,21 @@ export default function ProjectsPage() {
             nextImage();
           }}
           title={language === "FR" ? "Suivant" : "Next"}
-          className="absolute right-0 top-12 md:top-0 bottom-0 w-[50%] z-30 flex items-center justify-end pr-6 group cursor-pointer"
+          className="absolute right-0 top-12 md:top-0 bottom-0 w-[50%] z-30 hidden md:flex items-center justify-end pr-6 group cursor-pointer"
           role="button"
           tabIndex={0}
         >
           <div className="w-10 h-10 rounded-full bg-white/10 group-hover:bg-white/20 flex items-center justify-center text-white/50 group-hover:text-white transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm transform-gpu pointer-events-none">
-            ‹
+            ›
           </div>
         </div>
 
-        <div
-          onClick={nextImage}
-          className="w-full flex-1 flex items-center justify-center p-4 md:px-28 relative z-20 cursor-pointer overflow-hidden"
-          role="button"
-          tabIndex={0}
-        >
+        <div className="w-full flex-1 flex items-center justify-center p-4 md:px-28 relative z-20 overflow-hidden pointer-events-none">
           <img
             src={currentCoverSrc}
             alt={activeProject.title}
             decoding="async"
-            className="max-w-[85vw] md:max-w-[70vw] max-h-[78vh] md:max-h-[88vh] object-contain gpu-layer transition-opacity duration-200 pointer-events-none"
+            className="max-w-[90vw] md:max-w-[70vw] max-h-[78vh] md:max-h-[88vh] object-contain gpu-layer transition-opacity duration-200 pointer-events-none select-none"
           />
         </div>
 
@@ -719,7 +764,10 @@ export default function ProjectsPage() {
             <button
               key={`dot-${idx}`}
               type="button"
-              onClick={() => setActiveImage(idx)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveImage(idx);
+              }}
               className={`h-1.5 rounded-full transition-all duration-150 cursor-pointer ${
                 activeImage === idx ? "w-6 bg-white" : "w-1.5 bg-white/30"
               }`}
