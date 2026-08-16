@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Header from "@/components/Header";
+import Header from "@/components/header";
 
 const PROJECTS_LIST = [
   { id: "le-jardin-humain", title: "Le Jardin Humain", year: "2026" },
