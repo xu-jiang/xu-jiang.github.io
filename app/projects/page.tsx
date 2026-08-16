@@ -187,7 +187,7 @@ export default function ProjectsPage() {
       : activeProject.descriptionEn;
 
   return (
-    <main className="min-h-screen md:h-screen w-screen overflow-x-hidden md:overflow-hidden bg-white text-black font-['Helvetica','Neue',Helvetica,Arial,sans-serif] flex flex-col justify-between select-none touch-manipulation overscroll-none font-normal">
+    <main className="min-h-screen md:h-screen w-screen overflow-y-auto md:overflow-hidden bg-white text-black font-['Helvetica','Neue',Helvetica,Arial,sans-serif] flex flex-col justify-between select-none touch-manipulation font-normal">
       <style jsx global>{`
         html, body, main, div, aside, section, header {
           cursor: default !important;
@@ -240,11 +240,11 @@ export default function ProjectsPage() {
         }
       `}</style>
 
-      {/* HEADER */}
-      <header className="fixed top-0 left-0 z-40 w-full px-4 md:px-[4vw] py-3 md:py-[3vh] flex items-center justify-between bg-white transform-gpu">
+      {/* HEADER: 移动端折行居左/桌面端单行两端对齐 */}
+      <header className="fixed top-0 left-0 z-40 w-full px-4 md:px-[4vw] py-3 md:py-[3vh] flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-0 bg-white/90 backdrop-blur-md md:bg-white transform-gpu border-b border-neutral-100 md:border-none">
         <Link
           href="/"
-          className="text-xs md:text-sm tracking-[0.18em] text-black hover:opacity-50 transition-opacity"
+          className="text-xs md:text-sm tracking-[0.18em] text-black hover:opacity-50 transition-opacity whitespace-nowrap font-medium"
         >
           XU JIANGQI
         </Link>
@@ -262,12 +262,12 @@ export default function ProjectsPage() {
         </nav>
       </header>
 
-      {/* MAIN CONTENT */}
-      <div className="pt-[7vh] md:pt-[15vh] px-4 md:px-[4vw] h-full overflow-y-auto md:overflow-hidden flex-1 pb-8 md:pb-[4vh]">
+      {/* MAIN CONTENT: 移动端 padding-top 加大以容纳两行 Header */}
+      <div className="pt-[11vh] md:pt-[15vh] px-4 md:px-[4vw] h-full overflow-y-auto md:overflow-hidden flex-1 pb-12 md:pb-[4vh]">
         
         {/* ==================== 移动端专属布局 ==================== */}
         <div className="flex md:hidden flex-col gap-6 w-full">
-          <div className="flex items-center justify-between pb-3">
+          <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
             <span className="text-[10px] tracking-[0.2em] uppercase text-neutral-400">
               PROJECTS ({sortedProjects.length})
             </span>
@@ -301,24 +301,24 @@ export default function ProjectsPage() {
                     handleProjectSelect(project);
                     setShowDescription(true);
                   }}
-                  className={`w-full flex items-baseline justify-between text-left py-2 transition-opacity duration-300 ${
+                  className={`w-full flex items-baseline justify-between text-left py-2.5 transition-opacity duration-300 border-b border-neutral-50 ${
                     isActive ? "opacity-100 text-black font-medium" : "opacity-30 text-black"
                   }`}
                 >
-                  <span className="text-base tracking-wide truncate pr-2">{project.title}</span>
-                  <span className="text-xs tracking-[0.15em] text-neutral-400 ml-2 shrink-0">{project.year}</span>
+                  <span className="text-sm tracking-wide truncate pr-2">{project.title}</span>
+                  <span className="text-[11px] tracking-[0.15em] text-neutral-400 ml-2 shrink-0">{project.year}</span>
                 </button>
               );
             })}
           </div>
 
-          <div className="flex flex-col gap-4 bg-neutral-50 p-4 rounded-xl border border-black/5 mt-4">
+          <div className="flex flex-col gap-4 bg-neutral-50 p-5 rounded-xl border border-black/5 mt-2 mb-8">
             <div className="flex items-center justify-between text-[10px] tracking-[0.2em] uppercase text-neutral-400">
               <span>{activeProject.category}</span>
               <span>{activeProject.year}</span>
             </div>
 
-            <p className="text-sm md:text-base leading-[1.8] font-light text-neutral-600 whitespace-pre-line">
+            <p className="text-xs md:text-base leading-[1.8] font-light text-neutral-600 whitespace-pre-line">
               {activeDescription}
             </p>
 
@@ -393,7 +393,6 @@ export default function ProjectsPage() {
                         : "opacity-30 hover:opacity-60 text-black"
                     }`}
                   >
-                    {/* 缩小字号，添加 truncate/whitespace-nowrap 确保单行显示并精确对齐左侧 */}
                     <span className="text-sm lg:text-base tracking-wide pointer-events-none leading-tight truncate whitespace-nowrap pr-2">
                       {project.title}
                     </span>
@@ -406,7 +405,7 @@ export default function ProjectsPage() {
             </div>
           </aside>
 
-          {/* 桌面端图片与描述区域 (结构与尺寸绝对保持不动) */}
+          {/* 桌面端图片与描述区域 */}
           <section className="md:col-span-8 lg:col-span-6 xl:col-span-7 flex flex-col items-center h-full justify-between relative">
             <div className="w-full max-w-[56vw] mx-auto flex flex-col items-center justify-between">
               
