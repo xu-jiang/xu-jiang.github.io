@@ -56,6 +56,10 @@ export default function Home() {
   const [colWidths, setColWidths] = useState<number[]>([50, 50]);
   const [isReady, setIsReady] = useState(false);
 
+  const handlePageRefresh = () => {
+    window.location.reload();
+  };
+
   useEffect(() => {
     // 1. 根据当前屏幕宽度自动选择对应的列数与比例策略
     const getResponsivePattern = () => {
@@ -113,15 +117,31 @@ export default function Home() {
     };
     window.addEventListener("resize", handleResize);
 
+    // 5. 监听手机端下拉手势
+    let touchStartY = 0;
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0].clientY;
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      const touchEndY = e.changedTouches[0].clientY;
+      const distance = touchEndY - touchStartY;
+      // 当向下滑动距离超过 80px 时，触发刷新（等同于点击页面）
+      if (distance > 80) {
+        handlePageRefresh();
+      }
+    };
+
+    window.addEventListener("touchstart", handleTouchStart);
+    window.addEventListener("touchend", handleTouchEnd);
+
     return () => {
       clearTimeout(timer);
       window.removeEventListener("resize", handleResize);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchend", handleTouchEnd);
     };
   }, []);
-
-  const handlePageRefresh = () => {
-    window.location.reload();
-  };
 
   /* 渲染单图卡片 */
   const renderPhotoCard = (photo: Photo) => {

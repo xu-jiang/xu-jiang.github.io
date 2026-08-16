@@ -13,7 +13,7 @@ export default function Header() {
   ];
 
   return (
-    <header className="fixed top-0 inset-x-0 z-[100] flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 md:px-[2vw] py-3.5 sm:py-8 bg-white/90 backdrop-blur-sm border-b border-neutral-100 sm:border-none pointer-events-auto gap-2 sm:gap-0">
+    <header className="fixed top-0 inset-x-0 z-[100] flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 md:px-[2vw] py-3.5 sm:py-8 bg-white/90 backdrop-blur-sm border-b border-neutral-100 sm:border-none pointer-events-auto gap-3.5 sm:gap-0">
       {/* 品牌名 */}
       <Link
         href="/"
