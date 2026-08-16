@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import Header from "@/components/header";
+// 使用相对路径引用，确保能找到 app/components/Header.tsx
+import Header from "../../components/Header"; 
 
 const PROJECTS_LIST = [
   { id: "le-jardin-humain", title: "Le Jardin Humain", year: "2026" },
@@ -16,14 +17,9 @@ export default function ProjectsPage() {
     <main className="min-h-screen bg-white text-black font-sans box-border selection:bg-none">
       <Header />
 
-      {/* 1. 外层移除 justify-center，改为自然靠左 */}
+      {/* 外层移除 justify-center，改为自然靠左 */}
       <div className="pt-[20vh] pb-[12vh] px-4 md:px-[2vw] w-full box-border">
         
-        {/* 
-          2. 给列表容器加上 pl-[6vw] 或 ml-4（自行微调这个左边距）：
-             - 想要左侧文字更靠左：把 pl-[6vw] 改小（如 pl-[2vw] 或 pl-4）
-             - 想要右侧年份不动：给容器设置固定宽度或 max-w
-        */}
         <div className="w-full max-w-xl md:max-w-2xl pl-[2vw] md:pl-[5vw] space-y-8">
           
           {/* 小标题栏 */}
