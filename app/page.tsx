@@ -117,7 +117,7 @@ export default function Home() {
     };
     window.addEventListener("resize", handleResize);
 
-    // 5. 监听手机端下拉手势
+    // 5. 监听手机端上下滑动：无论是上滑还是下滑，只要滑动距离超过阈值（例如 40px）即视作与点击图片相同的动作（刷新页面）
     let touchStartY = 0;
     const handleTouchStart = (e: TouchEvent) => {
       touchStartY = e.touches[0].clientY;
@@ -125,9 +125,9 @@ export default function Home() {
 
     const handleTouchEnd = (e: TouchEvent) => {
       const touchEndY = e.changedTouches[0].clientY;
-      const distance = touchEndY - touchStartY;
-      // 当向下滑动距离超过 80px 时，触发刷新（等同于点击页面）
-      if (distance > 80) {
+      const distance = Math.abs(touchEndY - touchStartY);
+      // 当向上或向下滑动距离超过 40px 时，触发刷新（等同于点击页面）
+      if (distance > 40) {
         handlePageRefresh();
       }
     };
