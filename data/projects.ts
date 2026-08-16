@@ -1,9 +1,11 @@
 export type Project = {
   id: string;
-  title: string;
+  title: string;       // 默认标题
+  titleEn: string;     // 英文标题
+  titleFr: string;     // 法文标题
   category: string;
   year: string;
-  month?: string; // 新增月份字段（例如："05" 或 "May"），可选
+  month?: string;      // 新增月份字段（例如："05" 或 "May"），可选
   descriptionEn: string;
   descriptionFr: string;
   coverCaptionEn: string;
@@ -16,6 +18,8 @@ export const PROJECTS: Project[] = [
   {
     id: "une-realite-possible",
     title: "Une Réalité Possible",
+    titleEn: "A Possible Reality",
+    titleFr: "Une Réalité Possible",
     category: "AI & Documentary Fiction",
     year: "2026",
     month: "01",
@@ -77,6 +81,8 @@ export const PROJECTS: Project[] = [
   {
     id: "human-garden",
     title: "Human Garden",
+    titleEn: "Human Garden",
+    titleFr: "Le Jardin Humain",
     category: "Photography",
     year: "2026",
     month: "07",
@@ -110,6 +116,8 @@ export const PROJECTS: Project[] = [
   {
     id: "erhai-fish",
     title: "Erhai Fish",
+    titleEn: "Erhai Fish",
+    titleFr: "Les Poissons de l'Erhai",
     category: "Photography",
     year: "2024",
     month: "",
@@ -144,6 +152,8 @@ export const PROJECTS: Project[] = [
   {
     id: "wind-blow",
     title: "Wind Blow",
+    titleEn: "Wind Blow",
+    titleFr: "Le Vent Souffle",
     category: "Photography",
     year: "2022–2025",
     month: "11",
@@ -175,6 +185,8 @@ export const PROJECTS: Project[] = [
   {
     id: "portraits",
     title: "Portraits",
+    titleEn: "Portraits",
+    titleFr: "Portraits",
     category: "Photography",
     year: "2021-",
     month: "",

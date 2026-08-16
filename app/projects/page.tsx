@@ -176,16 +176,13 @@ export default function ProjectsPage() {
     const diffX = endX - startX;
     const diffY = endY - startY;
 
-    // 如果横向滑动距离超过 40px 且大于纵向偏移，判断为“左右滑动”
     if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
       if (diffX < 0) {
-        nextImage(); // 向左滑 -> 下一张
+        nextImage();
       } else {
-        previousImage(); // 向右滑 -> 上一张
+        previousImage();
       }
     } else if (Math.abs(diffX) < 10 && Math.abs(diffY) < 10) {
-      // 如果滑动距离极小（< 10px），判定为“单点点击”
-      // 根据点击位置是屏幕左半边还是右半边进行切换
       const screenWidth = window.innerWidth;
       if (endX < screenWidth / 2) {
         previousImage();
@@ -229,6 +226,11 @@ export default function ProjectsPage() {
     language === "FR"
       ? activeProject.descriptionFr
       : activeProject.descriptionEn;
+
+  const activeTitle =
+    language === "FR"
+      ? activeProject.titleFr || activeProject.title
+      : activeProject.titleEn || activeProject.title;
 
   return (
     <main className="min-h-screen md:h-screen w-screen overflow-y-auto md:overflow-hidden bg-white text-black font-['Helvetica','Neue',Helvetica,Arial,sans-serif] flex flex-col justify-between select-none touch-manipulation font-normal">
@@ -337,6 +339,8 @@ export default function ProjectsPage() {
           <div className="flex flex-col">
             {sortedProjects.map((project) => {
               const isActive = activeProject.id === project.id;
+              const projectTitle = language === "FR" ? project.titleFr || project.title : project.titleEn || project.title;
+
               return (
                 <button
                   key={project.id}
@@ -349,7 +353,7 @@ export default function ProjectsPage() {
                     isActive ? "opacity-100 text-black font-medium" : "opacity-30 text-black"
                   }`}
                 >
-                  <span className="text-sm tracking-wide truncate pr-2">{project.title}</span>
+                  <span className="text-sm tracking-wide truncate pr-2">{projectTitle}</span>
                   <span className="text-[11px] tracking-[0.15em] text-neutral-400 ml-2 shrink-0">{project.year}</span>
                 </button>
               );
@@ -375,7 +379,7 @@ export default function ProjectsPage() {
             >
               <img
                 src={currentCoverSrc}
-                alt={activeProject.title}
+                alt={activeTitle}
                 className="w-full h-full object-contain"
               />
             </div>
@@ -417,6 +421,7 @@ export default function ProjectsPage() {
             <div className="flex flex-col">
               {sortedProjects.map((project) => {
                 const isActive = activeProject.id === project.id;
+                const projectTitle = language === "FR" ? project.titleFr || project.title : project.titleEn || project.title;
 
                 return (
                   <button
@@ -438,7 +443,7 @@ export default function ProjectsPage() {
                     }`}
                   >
                     <span className="text-sm lg:text-base tracking-wide pointer-events-none leading-tight truncate whitespace-nowrap pr-2">
-                      {project.title}
+                      {projectTitle}
                     </span>
                     <span className="text-xs tracking-[0.15em] text-neutral-400 pointer-events-none shrink-0">
                       {project.year}
@@ -473,7 +478,7 @@ export default function ProjectsPage() {
                 {/* 主 Cover 图片 */}
                 <img
                   src={currentCoverSrc}
-                  alt={activeProject.title}
+                  alt={activeTitle}
                   loading="eager"
                   decoding="async"
                   onLoad={() => setCoverLoaded(true)}
@@ -597,7 +602,7 @@ export default function ProjectsPage() {
                   >
                     <img
                       src={imgSrc}
-                      alt={`${activeProject.title} ${index + 1}`}
+                      alt={`${activeTitle} ${index + 1}`}
                       loading="lazy"
                       decoding="async"
                       className={`w-full h-full object-cover transition-opacity duration-200 ease-out pointer-events-none ${
@@ -629,7 +634,7 @@ export default function ProjectsPage() {
       <div
         role="dialog"
         aria-modal="true"
-        aria-label={activeProject.title}
+        aria-label={activeTitle}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         className={`fixed inset-0 z-[100] bg-black text-white flex flex-col justify-between select-none transition-opacity duration-200 ease-out transform-gpu ${
@@ -650,7 +655,7 @@ export default function ProjectsPage() {
             </span>
           </div>
           <span className="text-sm tracking-[0.16em] text-neutral-200 uppercase truncate max-w-[200px]">
-            {activeProject.title}
+            {activeTitle}
           </span>
         </div>
 
@@ -659,7 +664,7 @@ export default function ProjectsPage() {
           className="flex md:hidden w-full items-center justify-between px-4 py-3 bg-neutral-900 border-b border-white/10 z-40 shrink-0"
         >
           <span className="text-xs tracking-[0.16em] text-neutral-200 uppercase truncate max-w-[60%]">
-            {activeProject.title}
+            {activeTitle}
           </span>
           <span className="text-[10px] tracking-[0.2em] text-neutral-400 uppercase font-light">
             {String((activeImage >= 0 ? activeImage : 0) + 1).padStart(2, "0")} / {String(activeProject.images.length).padStart(2, "0")}
@@ -750,7 +755,7 @@ export default function ProjectsPage() {
         <div className="w-full flex-1 flex items-center justify-center p-4 md:px-28 relative z-20 overflow-hidden pointer-events-none">
           <img
             src={currentCoverSrc}
-            alt={activeProject.title}
+            alt={activeTitle}
             decoding="async"
             className="max-w-[90vw] md:max-w-[70vw] max-h-[78vh] md:max-h-[88vh] object-contain gpu-layer transition-opacity duration-200 pointer-events-none select-none"
           />
