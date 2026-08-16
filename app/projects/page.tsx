@@ -215,7 +215,7 @@ export default function ProjectsPage() {
     touchStartRef.current = null;
   };
 
-  // 全屏触控手势逻辑（只保留左右滑动手势，移除轻触判定）
+  // 全屏触控手势逻辑（只保留左右划动管理）
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartRef.current = {
       x: e.touches[0].clientX,
@@ -235,7 +235,6 @@ export default function ProjectsPage() {
     const diffX = endX - startX;
     const diffY = endY - startY;
 
-    // 仅当水平滑动距离超过 40px 时判定为划动，轻触交给 onClick 独立处理
     if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
       if (diffX < 0) {
         nextImage();
@@ -741,7 +740,7 @@ export default function ProjectsPage() {
           </svg>
         </button>
 
-        {/* 中间大图全屏容器：滑动由 onTouchEnd 管理，单击由 onClick 统一管理 */}
+        {/* 中间大图全屏容器 */}
         <div
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
@@ -768,7 +767,6 @@ export default function ProjectsPage() {
             className="w-full bg-neutral-900/90 backdrop-blur-md border-t border-white/10 px-4 py-3 z-40 shrink-0 flex items-center justify-center"
           >
             {isLastImage ? (
-              /* 到达最后一张图时的选项 */
               <div className="flex items-center justify-center gap-6 w-full py-1">
                 <button
                   type="button"
@@ -793,10 +791,10 @@ export default function ProjectsPage() {
                 </button>
               </div>
             ) : (
-              /* 动态缩略图视口：选中的缩略图自动置中 */
+              /* 已修正：加入 py-2 内边距，使用 ring-2 完美替代 border，保证选中白框 4 边完全不被剥落或隐藏 */
               <div
                 ref={thumbContainerRef}
-                className="w-full overflow-x-auto no-scrollbar flex items-center gap-3 px-[50%]"
+                className="w-full overflow-x-auto no-scrollbar flex items-center gap-3 px-[50%] py-2"
               >
                 {activeProject.images.map((imgSrc, imgIdx) => {
                   const isActive = (activeImage < 0 ? 0 : activeImage) === imgIdx;
@@ -811,10 +809,10 @@ export default function ProjectsPage() {
                         e.stopPropagation();
                         setActiveImage(imgIdx);
                       }}
-                      className={`relative w-12 h-12 md:w-14 md:h-14 rounded-lg overflow-hidden transition-all duration-300 border-2 shrink-0 gpu-layer cursor-pointer ${
+                      className={`relative w-12 h-12 md:w-14 md:h-14 rounded-lg overflow-hidden transition-all duration-300 shrink-0 gpu-layer cursor-pointer ${
                         isActive
-                          ? "border-white opacity-100 shadow-lg scale-110 z-10"
-                          : "border-transparent opacity-40 hover:opacity-80 scale-100"
+                          ? "ring-2 ring-white opacity-100 shadow-lg scale-110 z-10"
+                          : "ring-0 opacity-40 hover:opacity-80 scale-100"
                       }`}
                     >
                       <img
