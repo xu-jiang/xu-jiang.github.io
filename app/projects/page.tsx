@@ -36,6 +36,24 @@ export default function ProjectsPage() {
   // 触摸手势相关的 Ref，记录起点坐标和时间
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
 
+  // 底部缩略图 Container & Items Refs (支持自动滑动置中)
+  const thumbContainerRef = useRef<HTMLDivElement | null>(null);
+  const thumbItemRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  // 监听 activeImage，确保当前选中的缩略图自动滚动平滑居中
+  useEffect(() => {
+    const currentIndex = activeImage < 0 ? 0 : activeImage;
+    const targetThumb = thumbItemRefs.current[currentIndex];
+    
+    if (targetThumb) {
+      targetThumb.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
+      });
+    }
+  }, [activeImage, fullscreen]);
+
   // 初始化随机选择项目
   useEffect(() => {
     if (sortedProjects.length > 0) {
@@ -141,7 +159,6 @@ export default function ProjectsPage() {
     });
   }, [activeProject.images.length]);
 
-  // 取消左右点击回到上一张的逻辑：改为统一点击即进入下一张
   const nextImage = useCallback(() => {
     requestAnimationFrame(() => {
       setActiveImage((current) => {
@@ -149,15 +166,14 @@ export default function ProjectsPage() {
         const currentIndex = current < 0 ? 0 : current;
 
         if (currentIndex >= total - 1) {
-          setFullscreen(false);
-          return -1;
+          return total - 1;
         }
         return currentIndex + 1;
       });
     });
   }, [activeProject.images.length]);
 
-  // 手机端主页 Cover 区域专属滑动逻辑：左右滑动切换当前项目图片
+  // 手机端主页 Cover 区域专属滑动逻辑
   const handleMobileCoverTouchStart = (e: React.TouchEvent) => {
     touchStartRef.current = {
       x: e.touches[0].clientX,
@@ -199,7 +215,7 @@ export default function ProjectsPage() {
     touchStartRef.current = null;
   };
 
-  // 全屏触控手势逻辑（左右滑动切换，点击屏幕任意位置进入下一张）
+  // 全屏触控手势逻辑（兼顾轻点跳转与左右滑动手势）
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartRef.current = {
       x: e.touches[0].clientX,
@@ -219,6 +235,7 @@ export default function ProjectsPage() {
     const diffX = endX - startX;
     const diffY = endY - startY;
 
+    // 如果滑动距离超过 40px 则判断为左右划动，否则认定为轻触（点按大图）直接切下一张
     if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
       if (diffX < 0) {
         nextImage();
@@ -226,7 +243,6 @@ export default function ProjectsPage() {
         previousImage();
       }
     } else if (Math.abs(diffX) < 10 && Math.abs(diffY) < 10) {
-      // 点击即进入下一张
       nextImage();
     }
 
@@ -270,6 +286,8 @@ export default function ProjectsPage() {
     language === "FR"
       ? activeProject.titleFr || activeProject.title
       : activeProject.titleEn || activeProject.title;
+
+  const isLastImage = activeImage === activeProject.images.length - 1;
 
   return (
     <main className="min-h-screen md:h-screen w-screen overflow-y-auto md:overflow-hidden bg-white text-black font-['Helvetica','Neue',Helvetica,Arial,sans-serif] flex flex-col justify-between select-none touch-manipulation font-normal">
@@ -409,7 +427,7 @@ export default function ProjectsPage() {
               {activeDescription}
             </p>
 
-            {/* 手机端主图区域：支持左右滑动切换图片，已移除左右箭头提示 */}
+            {/* 手机端主图区域 */}
             <div 
               onTouchStart={handleMobileCoverTouchStart}
               onTouchEnd={handleMobileCoverTouchEnd}
@@ -431,7 +449,7 @@ export default function ProjectsPage() {
         {/* ==================== 桌面端专属布局 ==================== */}
         <div className="hidden md:grid grid-cols-12 gap-[2vw] h-full items-start">
           
-          {/* 左侧：保持 2 栅格 */}
+          {/* 左侧列表 */}
           <aside className="col-span-3 lg:col-span-2 h-full overflow-y-auto no-scrollbar shrink-0 pb-[10vh] pl-2 md:pl-3 pr-1">
             <div className="flex items-center justify-between mb-6">
               <span className="text-[10px] tracking-[0.2em] uppercase text-neutral-400">
@@ -497,7 +515,7 @@ export default function ProjectsPage() {
             </div>
           </aside>
 
-          {/* 中间模块：保持 7 栅格分配 */}
+          {/* 中间大图 */}
           <section className="col-span-6 lg:col-span-7 flex flex-col items-center h-full justify-start relative">
             <div className="w-full max-w-[88%] flex flex-col items-center">
               
@@ -612,7 +630,7 @@ export default function ProjectsPage() {
             </div>
           </section>
 
-          {/* 右侧：3 栅格 */}
+          {/* 右侧：缩略图列表 */}
           <aside className="col-span-3 lg:col-span-3 h-full overflow-y-auto no-scrollbar">
             <div className="text-[10px] tracking-[0.2em] uppercase text-neutral-400 mb-6 flex justify-between items-center">
               <span>IMAGES ({activeProject.images.length})</span>
@@ -677,8 +695,6 @@ export default function ProjectsPage() {
         role="dialog"
         aria-modal="true"
         aria-label={activeTitle}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
         className={`fixed inset-0 z-[100] bg-black text-white flex flex-col justify-between select-none transition-opacity duration-200 ease-out transform-gpu ${
           fullscreen
             ? "opacity-100 pointer-events-auto"
@@ -727,45 +743,10 @@ export default function ProjectsPage() {
           </svg>
         </button>
 
-        {/* 桌面端：右侧缩略图 */}
-        {activeProject.images.length > 0 && (
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-40 hidden md:block transform-gpu"
-          >
-            <div className="flex flex-col gap-2.5 p-2 bg-neutral-900/80 backdrop-blur-md rounded-2xl border border-white/10 shadow-2xl max-h-[70vh] overflow-y-auto no-scrollbar">
-              {activeProject.images.map((imgSrc, imgIdx) => {
-                const isActive = activeImage === imgIdx;
-                return (
-                  <button
-                    key={`thumb-${imgIdx}`}
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveImage(imgIdx);
-                    }}
-                    className={`relative w-10 h-10 md:w-12 md:h-12 rounded-lg overflow-hidden transition-all duration-150 border-2 shrink-0 gpu-layer cursor-pointer ${
-                      isActive
-                        ? "border-white opacity-100 shadow-lg scale-105"
-                        : "border-transparent opacity-30 hover:opacity-80"
-                    }`}
-                  >
-                    <img
-                      src={imgSrc}
-                      alt=""
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full h-full object-cover pointer-events-none"
-                    />
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* 中间图片区域：点击即切换到下一张，不再区分左右返回 */}
+        {/* 中间大图全屏容器：支持触摸点击/触控直接切换下一张 */}
         <div
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
           onClick={(e) => {
             e.stopPropagation();
             nextImage();
@@ -782,38 +763,74 @@ export default function ProjectsPage() {
           />
         </div>
 
-        {/* 全屏模式下：将缩略图移至下方，方便用户选择观看某张图 */}
+        {/* 底部缩略图/控制栏 */}
         {activeProject.images.length > 0 && (
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full bg-neutral-900/90 backdrop-blur-md border-t border-white/10 px-4 py-3 z-40 shrink-0 overflow-x-auto no-scrollbar flex items-center justify-start md:justify-center gap-3"
+            className="w-full bg-neutral-900/90 backdrop-blur-md border-t border-white/10 px-4 py-3 z-40 shrink-0 flex items-center justify-center"
           >
-            {activeProject.images.map((imgSrc, imgIdx) => {
-              const isActive = activeImage === imgIdx;
-              return (
+            {isLastImage ? (
+              /* 到达最后一张图时的选项 */
+              <div className="flex items-center justify-center gap-6 w-full py-1">
                 <button
-                  key={`bottom-thumb-${imgIdx}`}
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setActiveImage(imgIdx);
+                    setActiveImage(0);
                   }}
-                  className={`relative w-12 h-12 md:w-14 md:h-14 rounded-lg overflow-hidden transition-all duration-150 border-2 shrink-0 gpu-layer cursor-pointer ${
-                    isActive
-                      ? "border-white opacity-100 shadow-lg scale-105"
-                      : "border-transparent opacity-40 hover:opacity-80"
-                  }`}
+                  className="px-4 py-2 bg-white/10 hover:bg-white/20 active:bg-white/30 border border-white/20 rounded-full text-xs tracking-[0.18em] uppercase text-white transition-all cursor-pointer"
                 >
-                  <img
-                    src={imgSrc}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-full object-cover pointer-events-none"
-                  />
+                  {language === "FR" ? "RECOMMENCER" : "RESTART"}
                 </button>
-              );
-            })}
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    closeFullscreen();
+                  }}
+                  className="px-4 py-2 bg-white text-black hover:bg-neutral-200 active:bg-neutral-300 rounded-full text-xs tracking-[0.18em] uppercase font-medium transition-all cursor-pointer"
+                >
+                  {language === "FR" ? "QUITTER" : "EXIT"}
+                </button>
+              </div>
+            ) : (
+              /* 动态缩略图视口：选中的缩略图自动置中 */
+              <div
+                ref={thumbContainerRef}
+                className="w-full overflow-x-auto no-scrollbar flex items-center gap-3 px-[50%]"
+              >
+                {activeProject.images.map((imgSrc, imgIdx) => {
+                  const isActive = (activeImage < 0 ? 0 : activeImage) === imgIdx;
+                  return (
+                    <button
+                      key={`bottom-thumb-${imgIdx}`}
+                      ref={(el) => {
+                        thumbItemRefs.current[imgIdx] = el;
+                      }}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveImage(imgIdx);
+                      }}
+                      className={`relative w-12 h-12 md:w-14 md:h-14 rounded-lg overflow-hidden transition-all duration-300 border-2 shrink-0 gpu-layer cursor-pointer ${
+                        isActive
+                          ? "border-white opacity-100 shadow-lg scale-110 z-10"
+                          : "border-transparent opacity-40 hover:opacity-80 scale-100"
+                      }`}
+                    >
+                      <img
+                        src={imgSrc}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-full object-cover pointer-events-none"
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
       </div>
