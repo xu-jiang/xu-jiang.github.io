@@ -92,20 +92,6 @@ export default function ProjectsPage() {
     setShowDescription(false);
   }, []);
 
-  // 切换到上一个项目
-  const previousProject = useCallback(() => {
-    const currentIndex = sortedProjects.findIndex((p) => p.id === activeProject.id);
-    const prevIndex = currentIndex <= 0 ? sortedProjects.length - 1 : currentIndex - 1;
-    handleProjectSelect(sortedProjects[prevIndex]);
-  }, [sortedProjects, activeProject.id, handleProjectSelect]);
-
-  // 切换到下一个项目
-  const nextProject = useCallback(() => {
-    const currentIndex = sortedProjects.findIndex((p) => p.id === activeProject.id);
-    const nextIndex = currentIndex >= sortedProjects.length - 1 ? 0 : currentIndex + 1;
-    handleProjectSelect(sortedProjects[nextIndex]);
-  }, [sortedProjects, activeProject.id, handleProjectSelect]);
-
   const handleCoverPrev = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setCoverLoaded(true);
@@ -170,8 +156,8 @@ export default function ProjectsPage() {
     });
   }, [activeProject.images.length]);
 
-  // 手机端主页 Cover 区域专属滑动逻辑：左右滑动切换【项目】
-  const handleMobileHomeTouchStart = (e: React.TouchEvent) => {
+  // 手机端主页 Cover 区域专属滑动逻辑：左右滑动切换【当前项目的图片】
+  const handleMobileCoverTouchStart = (e: React.TouchEvent) => {
     touchStartRef.current = {
       x: e.touches[0].clientX,
       y: e.touches[0].clientY,
@@ -179,7 +165,7 @@ export default function ProjectsPage() {
     };
   };
 
-  const handleMobileHomeTouchEnd = (e: React.TouchEvent) => {
+  const handleMobileCoverTouchEnd = (e: React.TouchEvent) => {
     if (!touchStartRef.current) return;
 
     const startX = touchStartRef.current.x;
@@ -190,19 +176,32 @@ export default function ProjectsPage() {
     const diffX = endX - startX;
     const diffY = endY - startY;
 
-    // 如果横向滑动距离大于40px，且横向位移大于纵向位移，则切换项目
+    // 横向滑动切换当前项目的图片
     if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
+      setCoverLoaded(true);
       if (diffX < 0) {
-        nextProject();
+        // 向左滑动 -> 下一张图片
+        setActiveImage((current) => {
+          const total = activeProject.images.length;
+          if (total === 0) return -1;
+          if (current >= total - 1) return 0;
+          return current + 1;
+        });
       } else {
-        previousProject();
+        // 向右滑动 -> 上一张图片
+        setActiveImage((current) => {
+          const total = activeProject.images.length;
+          if (total === 0) return -1;
+          if (current <= 0) return total - 1;
+          return current - 1;
+        });
       }
     }
 
     touchStartRef.current = null;
   };
 
-  // 全屏幻灯片模式触控手势逻辑（切换图片）
+  // 全屏触控手势逻辑
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartRef.current = {
       x: e.touches[0].clientX,
@@ -416,10 +415,10 @@ export default function ProjectsPage() {
               {activeDescription}
             </p>
 
-            {/* 手机端 Cover 区域：支持左右滑动切换项目，并带有左右切换箭头提示 */}
+            {/* 手机端主图区域：支持左右滑动切换当前项目的图片位置，并带有左右切换箭头提示 */}
             <div 
-              onTouchStart={handleMobileHomeTouchStart}
-              onTouchEnd={handleMobileHomeTouchEnd}
+              onTouchStart={handleMobileCoverTouchStart}
+              onTouchEnd={handleMobileCoverTouchEnd}
               onClick={openFullscreen}
               className="relative w-full mt-2 cursor-pointer flex items-center justify-center group"
               role="button"
@@ -432,12 +431,9 @@ export default function ProjectsPage() {
                 className="w-full h-auto block object-contain"
               />
 
-              {/* 手机端左侧切换项目箭头提示 */}
+              {/* 手机端左侧切换图片箭头提示 */}
               <div
-                onClick={(e) => {
-                  e.stopPropagation();
-                  previousProject();
-                }}
+                onClick={handleCoverPrev}
                 className="absolute left-0 top-0 bottom-0 w-12 flex items-center justify-start pl-2 text-black/40 active:text-black transition-colors"
                 role="button"
               >
@@ -446,12 +442,9 @@ export default function ProjectsPage() {
                 </div>
               </div>
 
-              {/* 手机端右侧切换项目箭头提示 */}
+              {/* 手机端右侧切换图片箭头提示 */}
               <div
-                onClick={(e) => {
-                  e.stopPropagation();
-                  nextProject();
-                }}
+                onClick={handleCoverNext}
                 className="absolute right-0 top-0 bottom-0 w-12 flex items-center justify-end pr-2 text-black/40 active:text-black transition-colors"
                 role="button"
               >
