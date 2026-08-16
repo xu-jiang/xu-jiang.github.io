@@ -92,6 +92,20 @@ export default function ProjectsPage() {
     setShowDescription(false);
   }, []);
 
+  // 切换到上一个项目
+  const previousProject = useCallback(() => {
+    const currentIndex = sortedProjects.findIndex((p) => p.id === activeProject.id);
+    const prevIndex = currentIndex <= 0 ? sortedProjects.length - 1 : currentIndex - 1;
+    handleProjectSelect(sortedProjects[prevIndex]);
+  }, [sortedProjects, activeProject.id, handleProjectSelect]);
+
+  // 切换到下一个项目
+  const nextProject = useCallback(() => {
+    const currentIndex = sortedProjects.findIndex((p) => p.id === activeProject.id);
+    const nextIndex = currentIndex >= sortedProjects.length - 1 ? 0 : currentIndex + 1;
+    handleProjectSelect(sortedProjects[nextIndex]);
+  }, [sortedProjects, activeProject.id, handleProjectSelect]);
+
   const handleCoverPrev = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setCoverLoaded(true);
@@ -156,7 +170,39 @@ export default function ProjectsPage() {
     });
   }, [activeProject.images.length]);
 
-  // 全屏触控手势逻辑
+  // 手机端主页 Cover 区域专属滑动逻辑：左右滑动切换【项目】
+  const handleMobileHomeTouchStart = (e: React.TouchEvent) => {
+    touchStartRef.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+      time: Date.now(),
+    };
+  };
+
+  const handleMobileHomeTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+
+    const startX = touchStartRef.current.x;
+    const startY = touchStartRef.current.y;
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+
+    const diffX = endX - startX;
+    const diffY = endY - startY;
+
+    // 如果横向滑动距离大于40px，且横向位移大于纵向位移，则切换项目
+    if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
+      if (diffX < 0) {
+        nextProject();
+      } else {
+        previousProject();
+      }
+    }
+
+    touchStartRef.current = null;
+  };
+
+  // 全屏幻灯片模式触控手势逻辑（切换图片）
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartRef.current = {
       x: e.touches[0].clientX,
@@ -370,9 +416,12 @@ export default function ProjectsPage() {
               {activeDescription}
             </p>
 
+            {/* 手机端 Cover 区域：支持左右滑动切换项目，并带有左右切换箭头提示 */}
             <div 
+              onTouchStart={handleMobileHomeTouchStart}
+              onTouchEnd={handleMobileHomeTouchEnd}
               onClick={openFullscreen}
-              className="relative w-full mt-2 cursor-pointer flex items-center justify-center"
+              className="relative w-full mt-2 cursor-pointer flex items-center justify-center group"
               role="button"
               tabIndex={0}
               onKeyDown={(e) => e.key === "Enter" && openFullscreen(e)}
@@ -382,6 +431,34 @@ export default function ProjectsPage() {
                 alt={activeTitle}
                 className="w-full h-auto block object-contain"
               />
+
+              {/* 手机端左侧切换项目箭头提示 */}
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  previousProject();
+                }}
+                className="absolute left-0 top-0 bottom-0 w-12 flex items-center justify-start pl-2 text-black/40 active:text-black transition-colors"
+                role="button"
+              >
+                <div className="w-7 h-7 rounded-full bg-white/80 shadow-sm flex items-center justify-center text-xs">
+                  ‹
+                </div>
+              </div>
+
+              {/* 手机端右侧切换项目箭头提示 */}
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  nextProject();
+                }}
+                className="absolute right-0 top-0 bottom-0 w-12 flex items-center justify-end pr-2 text-black/40 active:text-black transition-colors"
+                role="button"
+              >
+                <div className="w-7 h-7 rounded-full bg-white/80 shadow-sm flex items-center justify-center text-xs">
+                  ›
+                </div>
+              </div>
             </div>
           </div>
         </div>
