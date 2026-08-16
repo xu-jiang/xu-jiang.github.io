@@ -33,7 +33,7 @@ export default function ProjectsPage() {
   const [coverLoaded, setCoverLoaded] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
 
-  // 触摸手势相关的 Ref，记录起点坐标和时间，避免触发不必要的渲染
+  // 触摸手势相关的 Ref，记录起点坐标和时间
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
 
   // 初始化随机选择项目
@@ -156,7 +156,7 @@ export default function ProjectsPage() {
     });
   }, [activeProject.images.length]);
 
-  // 全屏触控手势逻辑（同时兼容点击与左右滑动）
+  // 全屏触控手势逻辑
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartRef.current = {
       x: e.touches[0].clientX,
@@ -287,7 +287,7 @@ export default function ProjectsPage() {
       `}</style>
 
       {/* HEADER */}
-      <header className="fixed top-0 left-0 z-40 w-full px-4 md:px-[4vw] py-3 md:py-[3vh] flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-0 bg-white/90 backdrop-blur-md md:bg-white transform-gpu border-b border-neutral-100 md:border-none">
+      <header className="fixed top-0 left-0 z-40 w-full px-4 md:px-[2.5vw] py-3 md:py-[3vh] flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-0 bg-white/90 backdrop-blur-md md:bg-white transform-gpu border-b border-neutral-100 md:border-none">
         <Link
           href="/"
           className="text-xs md:text-sm tracking-[0.18em] text-black hover:opacity-50 transition-opacity whitespace-nowrap font-medium"
@@ -309,7 +309,7 @@ export default function ProjectsPage() {
       </header>
 
       {/* MAIN CONTENT */}
-      <div className="pt-[11vh] md:pt-[15vh] px-4 md:px-[4vw] h-full overflow-y-auto md:overflow-hidden flex-1 pb-12 md:pb-[4vh]">
+      <div className="pt-[11vh] md:pt-[15vh] px-4 md:px-[2.5vw] h-full overflow-y-auto md:overflow-hidden flex-1 pb-12 md:pb-[4vh]">
         
         {/* ==================== 移动端专属布局 ==================== */}
         <div className="flex md:hidden flex-col gap-6 w-full">
@@ -336,7 +336,7 @@ export default function ProjectsPage() {
             </div>
           </div>
 
-          <div className="flex flex-col">
+          <div className="flex flex-col w-full">
             {sortedProjects.map((project) => {
               const isActive = activeProject.id === project.id;
               const projectTitle = language === "FR" ? project.titleFr || project.title : project.titleEn || project.title;
@@ -360,8 +360,7 @@ export default function ProjectsPage() {
             })}
           </div>
 
-          {/* 移除原本卡片边框/背景/内边距，保持纯净大方的通透显示 */}
-          <div className="flex flex-col gap-3 mt-2 mb-8">
+          <div className="flex flex-col gap-3 mt-2 mb-8 w-full">
             <div className="flex items-center justify-between text-[10px] tracking-[0.2em] uppercase text-neutral-400">
               <span>{activeProject.category}</span>
               <span>{activeProject.year}</span>
@@ -371,7 +370,6 @@ export default function ProjectsPage() {
               {activeDescription}
             </p>
 
-            {/* 移除背景色与圆角，无边框限定 */}
             <div 
               onClick={openFullscreen}
               className="relative w-full mt-2 cursor-pointer flex items-center justify-center"
@@ -389,9 +387,10 @@ export default function ProjectsPage() {
         </div>
 
         {/* ==================== 桌面端专属布局 ==================== */}
-        <div className="hidden md:grid grid-cols-12 gap-[4vw] lg:gap-[5vw] h-full items-start">
+        <div className="hidden md:grid grid-cols-12 gap-[2vw] h-full items-start">
           
-          <aside className="md:col-span-4 lg:col-span-3 xl:col-span-2 h-full overflow-y-auto no-scrollbar shrink-0 pb-[10vh]">
+          {/* 左侧：保持 2 栅格 */}
+          <aside className="col-span-3 lg:col-span-2 h-full overflow-y-auto no-scrollbar shrink-0 pb-[10vh] pl-2 md:pl-3 pr-1">
             <div className="flex items-center justify-between mb-6">
               <span className="text-[10px] tracking-[0.2em] uppercase text-neutral-400">
                 PROJECTS ({sortedProjects.length})
@@ -456,9 +455,9 @@ export default function ProjectsPage() {
             </div>
           </aside>
 
-          {/* 桌面端图片与描述区域 */}
-          <section className="md:col-span-8 lg:col-span-6 xl:col-span-7 flex flex-col items-center h-full justify-between relative">
-            <div className="w-full max-w-[56vw] mx-auto flex flex-col items-center justify-between">
+          {/* 中间模块：保持 7 栅格分配，但对容器限制 max-w-[85%] 适当缩减图片宽度，顶部贴齐 */}
+          <section className="col-span-6 lg:col-span-7 flex flex-col items-center h-full justify-start relative">
+            <div className="w-full max-w-[88%] flex flex-col items-center">
               
               <div 
                 onClick={openFullscreen}
@@ -530,14 +529,12 @@ export default function ProjectsPage() {
                   role="button"
                   tabIndex={0}
                 >
-                  {/* 顶部分类与年份对齐 */}
                   <div className="flex items-center justify-between border-b border-black/10 pb-3">
                     <span className="text-[10px] tracking-[0.2em] uppercase text-neutral-400 leading-none">
                       {activeProject.category} / {activeProject.year}
                     </span>
                   </div>
 
-                  {/* 详细描述主体 */}
                   <div className="my-auto py-2 flex flex-row items-center justify-between pr-16">
                     <div className="flex-1 pr-8">
                       <p className="text-base md:text-lg leading-[1.8] font-light text-neutral-600 max-w-2xl whitespace-pre-line">
@@ -573,7 +570,8 @@ export default function ProjectsPage() {
             </div>
           </section>
 
-          <aside className="hidden lg:block lg:col-span-3 xl:col-span-3 h-full overflow-y-auto no-scrollbar">
+          {/* 右侧：3 栅格 */}
+          <aside className="col-span-3 lg:col-span-3 h-full overflow-y-auto no-scrollbar">
             <div className="text-[10px] tracking-[0.2em] uppercase text-neutral-400 mb-6 flex justify-between items-center">
               <span>IMAGES ({activeProject.images.length})</span>
             </div>
@@ -723,7 +721,6 @@ export default function ProjectsPage() {
           </div>
         )}
 
-        {/* 桌面端左右箭头指示 hover 区域 */}
         <div
           onClick={(e) => {
             e.stopPropagation();

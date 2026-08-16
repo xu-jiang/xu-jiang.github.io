@@ -1,95 +1,67 @@
+"use client";
+
 import Link from "next/link";
+import Header from "@/components/Header";
 
-// 模拟各个项目的完整图片集数据
-const PROJECT_DETAILS: Record<
-  string,
-  { title: string; category: string; year: string; description: string; photos: string[] }
-> = {
-  "shanghai-nights": {
-    title: "Shanghai Nights",
-    category: "Personal Series",
-    year: "2026",
-    description: "A visual exploration of urban neon and nocturnal solitude across the streets of Shanghai.",
-    photos: ["/images/001.jpg", "/images/002.jpg", "/images/003.jpg", "/images/004.jpg"],
-  },
-  "urban-solitude": {
-    title: "Urban Solitude",
-    category: "Editorial",
-    year: "2025",
-    description: "Minimalist geometry and architectural quietness in modern metropolis.",
-    photos: ["/images/003.jpg", "/images/005.jpg", "/images/006.jpg"],
-  },
-};
+const PROJECTS_LIST = [
+  { id: "le-jardin-humain", title: "Le Jardin Humain", year: "2026" },
+  { id: "une-realite-possible", title: "Une Réalité Possible", year: "2026" },
+  { id: "les-poissons-de-l-er...", title: "Les Poissons de l'Er...", year: "2024", active: true },
+  { id: "le-vent-souffle", title: "Le Vent Souffle", year: "2022–2025" },
+  { id: "portraits", title: "Portraits", year: "2021–" },
+];
 
-export async function generateStaticParams() {
-  const ids = Object.keys(PROJECT_DETAILS);
-  return ids.map((id) => ({
-    id: id,
-  }));
-}
-
-export default async function ProjectDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  // 在 Next.js 15+ 中，params 统一为 Promise，直接 await 解包最安全
-  const resolvedParams = await params;
-  const rawId = resolvedParams?.id;
-
-  // 如果没有匹配到对应的项目，提供安全的默认展示，绝对避免 undefined 报错
-  const id = rawId && PROJECT_DETAILS[rawId] ? rawId : "default";
-
-  const project = PROJECT_DETAILS[id] || {
-    title: rawId ? rawId.replace(/-/g, " ").toUpperCase() : "PROJECT",
-    category: "Selected Project",
-    year: "2026",
-    description: "A series of visual works.",
-    photos: ["/images/001.jpg", "/images/002.jpg", "/images/003.jpg"],
-  };
-
+export default function ProjectsPage() {
   return (
-    <main className="w-screen min-h-screen pt-[16vh] pb-[12vh] px-[6vw] md:px-[10vw] box-border bg-white text-black font-sans selection:bg-none">
-      {/* 顶部返回与项目信息 */}
-      <div className="max-w-4xl mb-16 space-y-6">
-        <Link
-          href="/projects"
-          className="inline-block text-xs tracking-[0.2em] text-gray-400 hover:text-black uppercase transition-colors"
-        >
-          ← Back to Projects
-        </Link>
-        <div className="space-y-2">
-          <h1 className="text-3xl sm:text-5xl font-light tracking-[0.1em] uppercase">
-            {project.title}
-          </h1>
-          <p className="text-xs sm:text-sm tracking-[0.15em] text-gray-400 uppercase font-light">
-            {project.category} — {project.year}
-          </p>
-        </div>
-        <p className="text-xs sm:text-sm tracking-[0.1em] text-gray-600 font-light max-w-2xl leading-relaxed">
-          {project.description}
-        </p>
-      </div>
+    <main className="min-h-screen bg-white text-black font-sans box-border selection:bg-none">
+      <Header />
 
-      {/* 垂直流式高清展示大图 */}
-      <div className="space-y-[10vh]">
-        {project.photos.map((src, idx) => (
-          <div key={idx} className="w-full flex justify-center">
-            <img
-              src={src}
-              alt={`${project.title} - ${idx + 1}`}
-              className="max-w-full max-h-[85vh] object-contain shadow-sm"
-            />
+      {/* 1. 外层移除 justify-center，改为自然靠左 */}
+      <div className="pt-[20vh] pb-[12vh] px-4 md:px-[2vw] w-full box-border">
+        
+        {/* 
+          2. 给列表容器加上 pl-[6vw] 或 ml-4（自行微调这个左边距）：
+             - 想要左侧文字更靠左：把 pl-[6vw] 改小（如 pl-[2vw] 或 pl-4）
+             - 想要右侧年份不动：给容器设置固定宽度或 max-w
+        */}
+        <div className="w-full max-w-xl md:max-w-2xl pl-[2vw] md:pl-[5vw] space-y-8">
+          
+          {/* 小标题栏 */}
+          <div className="flex justify-between items-center text-xs tracking-[0.2em] text-neutral-400 uppercase pb-2">
+            <span>PROJECTS ({PROJECTS_LIST.length})</span>
+            <div className="space-x-2 text-[11px]">
+              <span className="font-bold text-black">FR</span>
+              <span>/</span>
+              <span>EN</span>
+            </div>
           </div>
-        ))}
-      </div>
 
-      {/* 底部导航 */}
-      <div className="pt-20 border-t border-gray-100 flex justify-between items-center text-xs tracking-[0.2em] uppercase text-gray-400">
-        <span>End of Gallery</span>
-        <Link href="/projects" className="hover:text-black transition-colors">
-          Back to Index ↑
-        </Link>
+          {/* 项目列表 */}
+          <div className="space-y-4">
+            {PROJECTS_LIST.map((project) => (
+              <Link
+                key={project.id}
+                href={`/projects/${project.id}`}
+                className="flex justify-between items-baseline group py-1"
+              >
+                <span
+                  className={`text-base md:text-lg tracking-wide transition-colors ${
+                    project.active
+                      ? "font-bold text-black"
+                      : "text-neutral-400 hover:text-black font-normal"
+                  }`}
+                >
+                  {project.title}
+                </span>
+
+                <span className="text-xs md:text-sm tracking-widest text-neutral-300 font-light ml-8 shrink-0">
+                  {project.year}
+                </span>
+              </Link>
+            ))}
+          </div>
+
+        </div>
       </div>
     </main>
   );

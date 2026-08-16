@@ -20,13 +20,18 @@ export default function About() {
           left-0
           z-50
           w-full
-          px-[4vw]
-          py-[3vh]
+          px-4
+          md:px-[4vw]
+          py-3
+          md:py-[3vh]
           flex
           items-center
           justify-between
           bg-white/90
           backdrop-blur-sm
+          border-b
+          border-neutral-100
+          md:border-none
         "
       >
 
@@ -35,10 +40,12 @@ export default function About() {
         <Link
           href="/"
           className="
-            text-sm
+            text-xs
+            md:text-sm
             font-medium
             hover:opacity-50
             transition-opacity
+            tracking-[0.18em]
           "
         >
           XU JIANGQI
@@ -51,8 +58,12 @@ export default function About() {
           className="
             flex
             items-center
-            gap-[3vw]
-            text-sm
+            gap-4
+            md:gap-[3vw]
+            text-[10px]
+            md:text-xs
+            tracking-[0.18em]
+            uppercase
           "
         >
 
@@ -96,8 +107,10 @@ export default function About() {
 
       <div
         className="
-          pt-[14vh]
-          px-[4vw]
+          pt-[11vh]
+          md:pt-[14vh]
+          px-4
+          md:px-[4vw]
           pb-[12vh]
         "
       >
@@ -119,8 +132,8 @@ export default function About() {
             ABOUT
           </h1>
 
-          {/* 语言切换按钮：回到右侧 */}
-          <div className="flex items-center gap-2 text-sm">
+          {/* 语言切换按钮 */}
+          <div className="flex items-center gap-2 text-xs md:text-sm">
             <button
               onClick={() => setLang("FR")}
               className={`transition-opacity ${
@@ -505,7 +518,8 @@ export default function About() {
 
       <footer
         className="
-          px-[4vw]
+          px-4
+          md:px-[4vw]
           pb-[4vh]
           flex
           justify-between

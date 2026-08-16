@@ -160,8 +160,8 @@ export default function Home() {
     );
   }
 
-  // 统一左右留白边距定义
-  const CONTAINER_PADDING = "px-5 md:px-8";
+  // 统一左右留白边距定义（网页端为 md:px-[2vw]，缩小左右间距）
+  const CONTAINER_PADDING = "px-4 md:px-[2vw]";
   const currentColumnCount = colWidths.length;
 
   // 动态将所有照片按当前的列数进行均分流式分配
@@ -189,32 +189,11 @@ export default function Home() {
         touch-none
       "
     >
-      {/* Header - 使用 inset-x-0 和 box-border 确保边距与下方容器精准一致 */}
-      <header
-        className={`
-          fixed top-0 inset-x-0 h-[8vh] md:h-[12vh] z-50
-          flex items-center justify-between
-          ${CONTAINER_PADDING}
-          box-border
-          pointer-events-none
-          bg-white/90 backdrop-blur-sm md:bg-transparent md:backdrop-blur-none
-        `}
-      >
-        <h1 className="text-xs md:text-sm font-bold tracking-[0.2em] text-black uppercase">
-          TODD HIDO
-        </h1>
-        <nav className="text-[10px] md:text-xs tracking-[0.18em] uppercase text-neutral-400 flex gap-4 md:gap-8">
-          <span className="text-black font-medium">Portfolios</span>
-          <span>Monographs</span>
-          <span>Info</span>
-        </nav>
-      </header>
-
-      {/* 照片墙容器 */}
+      {/* 照片墙容器：稍微增大上边距，使图片向下平移一点点 */}
       <div
         className={`
           w-full h-full
-          pt-[8vh] md:pt-[12vh] pb-5 md:pb-8
+          pt-24 sm:pt-28 md:pt-[11vh] pb-5 md:pb-8
           ${CONTAINER_PADDING}
           box-border
           overflow-hidden
