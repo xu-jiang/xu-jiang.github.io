@@ -76,25 +76,47 @@ export default function Home() {
       }
     };
 
-    setColWidths(getResponsivePattern());
+    const pattern = getResponsivePattern();
+    setColWidths(pattern);
 
     // 2. 去重与洗牌
     const uniqueImageSrcs = Array.from(new Set(PORTFOLIO_IMAGES));
     const shuffledSrcs = shuffleArray(uniqueImageSrcs);
 
-    // 3. 计算渐显延迟与时长
+    const colsCount = pattern.length;
+
+    // 找出第一行中宽度最大（大图）的列索引
+    let maxColWidth = -1;
+    let mainBigImageColIndex = 0;
+    pattern.forEach((w, idx) => {
+      if (w > maxColWidth) {
+        maxColWidth = w;
+        mainBigImageColIndex = idx;
+      }
+    });
+
+    // 3. 计算渐显延迟与时长（按原版 90% 压缩时长）
     const photosWithAnimation: Photo[] = shuffledSrcs.map((src, index) => {
       let delay = 0;
-      if (index < 6) {
-        delay = index * 900;
+
+      if (index < colsCount) {
+        // 【第一行图片逻辑】
+        if (index === mainBigImageColIndex) {
+          // 第一行大图独占前场，1170ms (1300ms * 0.9) 启动
+          delay = 1170;
+        } else {
+          // 第一行其他图在 1170ms ~ 2250ms 之间跟随出现
+          delay = 1170 + Math.floor(Math.random() * 1080);
+        }
       } else {
-        const baseOffset = 4320;
-        const incrementalStep = (index - 6) * 765;
-        const microRandom = Math.floor(Math.random() * 300);
-        delay = baseOffset + incrementalStep + microRandom;
+        // 【后续图片逻辑】：2430ms (2700ms * 0.9) 之后起步，在 7200ms (8000ms * 0.9) 跨度内随机散落
+        const baseOffset = 2430;
+        const randomJitter = Math.floor(Math.random() * 7200);
+        delay = baseOffset + randomJitter;
       }
 
-      const duration = 3420 + Math.floor(Math.random() * 1530);
+      // 渐变时长：1800ms ~ 4500ms（整体缩减 10% 的柔和淡入）
+      const duration = 1800 + Math.floor(Math.random() * 2700);
 
       return {
         id: index + 1,
@@ -117,7 +139,7 @@ export default function Home() {
     };
     window.addEventListener("resize", handleResize);
 
-    // 5. 监听手机端上下滑动：无论是上滑还是下滑，只要滑动距离超过阈值（例如 40px）即视作与点击图片相同的动作（刷新页面）
+    // 5. 监听手机端上下滑动：滑动距离超过阈值（例如 40px）即刷新页面
     let touchStartY = 0;
     const handleTouchStart = (e: TouchEvent) => {
       touchStartY = e.touches[0].clientY;
@@ -126,7 +148,6 @@ export default function Home() {
     const handleTouchEnd = (e: TouchEvent) => {
       const touchEndY = e.changedTouches[0].clientY;
       const distance = Math.abs(touchEndY - touchStartY);
-      // 当向上或向下滑动距离超过 40px 时，触发刷新（等同于点击页面）
       if (distance > 40) {
         handlePageRefresh();
       }
@@ -180,7 +201,7 @@ export default function Home() {
     );
   }
 
-  // 统一左右留白边距定义（网页端为 md:px-[2vw]，缩小左右间距）
+  // 统一左右留白边距定义
   const CONTAINER_PADDING = "px-4 md:px-[2vw]";
   const currentColumnCount = colWidths.length;
 
@@ -209,7 +230,6 @@ export default function Home() {
         touch-none
       "
     >
-      {/* 照片墙容器：调整 pt-16 sm:pt-20 使下方图片上升，并与顶部 Header 保持视觉均衡 */}
       <div
         className={`
           w-full h-full
@@ -230,8 +250,7 @@ export default function Home() {
                   width: `${width}%`,
                 }}
                 className="
-                  h-full
-                  flex flex-col gap-4 md:gap-6
+                  flex flex-col justify-start gap-4 md:gap-6
                   min-w-0
                   overflow-hidden
                   transition-[width] duration-700 ease-out
