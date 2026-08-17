@@ -209,11 +209,11 @@ export default function Home() {
         touch-none
       "
     >
-      {/* 照片墙容器：稍微增大上边距，使图片向下平移一点点 */}
+      {/* 照片墙容器：调整 pt-16 sm:pt-20 使下方图片上升，并与顶部 Header 保持视觉均衡 */}
       <div
         className={`
           w-full h-full
-          pt-24 sm:pt-28 md:pt-[11vh] pb-5 md:pb-8
+          pt-16 sm:pt-20 md:pt-[11vh] pb-5 md:pb-8
           ${CONTAINER_PADDING}
           box-border
           overflow-hidden
