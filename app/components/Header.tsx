@@ -13,24 +13,24 @@ export default function Header() {
   ];
 
   return (
-    <header className="fixed top-0 inset-x-0 z-[100] flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 md:px-[2vw] py-3.5 sm:py-8 bg-white/90 backdrop-blur-sm border-b border-neutral-100 sm:border-none pointer-events-auto gap-3.5 sm:gap-0">
+    <header className="fixed top-0 inset-x-0 z-[100] flex flex-row items-center justify-between px-4 md:px-[2vw] py-4 sm:py-6 bg-white border-b border-neutral-100 pointer-events-auto">
       {/* 品牌名 */}
       <Link
         href="/"
-        className="font-bold text-black uppercase hover:opacity-60 transition-opacity whitespace-nowrap text-xs sm:text-base tracking-[0.2em] leading-none"
+        className="font-bold text-black uppercase hover:opacity-60 transition-opacity whitespace-nowrap text-xs sm:text-base tracking-[0.2em] leading-none shrink-0"
       >
         XU JIANGQI
       </Link>
 
       {/* 导航菜单 */}
-      <nav className="flex justify-start items-center gap-5 sm:gap-8 uppercase text-gray-800 text-[10px] sm:text-sm tracking-[0.15em] font-semibold leading-none">
+      <nav className="flex justify-end items-center gap-3.5 sm:gap-8 uppercase text-gray-800 text-[10px] sm:text-sm tracking-[0.15em] font-semibold leading-none shrink-0">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`transition-opacity ${
+              className={`transition-opacity whitespace-nowrap ${
                 isActive ? "opacity-100 font-bold" : "opacity-60 hover:opacity-100"
               }`}
             >

@@ -120,7 +120,7 @@ export default function About() {
         ================================================= */}
 
         <div className="flex items-baseline justify-between mb-[6vh]">
-          {/* 加大的 ABOUT 标题 */}
+          {/* ABOUT 标题 */}
           <h1
             className="
               text-xl
@@ -208,19 +208,31 @@ export default function About() {
             {lang === "FR" ? (
               <>
                 <p>
-                  « Xu Jiangqi », c’est moi — on m’appelle aussi parfois « Xuezhang ». J’ai étudié l’architecture puis les arts plastiques, deux disciplines exigeantes qui reposent largement sur un portfolio, bien que je n’aie pas encore créé d’œuvre majeure à mettre en avant. La création de ce site est en partie née d’une phrase du professeur Huang Yikai : « Posséder son propre site web est la toute première étape pour qu’un photographe soit pris au sérieux » — du moins, c’est ainsi que je m’en souviens.
+                  « Xu Jiangqi » — on m’appelle aussi « Xuezhang ».
                 </p>
                 <p>
-                  Quoi qu’il en soit, ma passion pour la photographie est profondément sincère. Photographier demande souvent d’échanger avec les autres, même si ce n’est pas toujours le cas. Quel que soit le mode d’approche, ce processus suscite toujours en moi une vive émotion et une grande concentration intellectuelle. Sans une immersion totale à cet instant précis, il est impossible de saisir une image remarquable.
+                  À travers la photographie, j’exprime ma façon d'observer le monde. Ce site rassemble un choix d'images et de projets : un bilan autant qu'un nouveau départ.
+                </p>
+                <p>
+                  Sa création fait écho à une phrase du professeur Huang Yikai — du moins dans mon souvenir : « Posséder son propre site web est le tout premier pas pour qu’un photographe soit pris au sérieux. »
+                </p>
+                <p>
+                  Quoi qu'il en soit, ma passion pour la photographie est profondément sincère. Qu'elle demande d'aller vers l'autre ou de créer dans le silence, la démarche photographique suscite toujours en moi une vive émotion et une grande concentration. Sans une immersion totale dans l'instant, impossible de saisir une image marquante.
                 </p>
               </>
             ) : (
               <>
                 <p>
-                  “Xu Jiangqi” is me—sometimes people also call me Xuezhang. I studied architecture and fine arts (arts plastiques), both portfolio-driven fields, yet I haven’t produced any landmark work worth highlighting just yet. Creating this website was partly sparked by a remark from Professor Huang Yikai—that having an official site is the first real step for a photographer. Or something along those lines, if my memory serves me right.
+                  "Xu Jiangqi" — also known as "Xuezhang."
                 </p>
                 <p>
-                  Regardless, my passion for taking photos is genuine. Photography often involves connecting with others—and sometimes it doesn’t—but either way, the process always brings an inner resonance and total focus. Without being fully present in that moment, it’s impossible to create remarkable work.
+                  I use photography to translate how I observe the world. This website gathers a selection of images and projects—a reflection on where I’ve been, and a springboard for what’s next.
+                </p>
+                <p>
+                  Its creation traces back to something Professor Huang Yikai once said—at least as I recall it: "Having your own website is the first step to being taken seriously as a photographer."
+                </p>
+                <p>
+                  Either way, my devotion to the craft is deeply felt. Whether it involves connecting with others or working in quiet isolation, photography always brings a wave of emotion and sharp focus. Without total immersion in the moment, capturing a striking image simply isn't possible.
                 </p>
               </>
             )}

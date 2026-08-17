@@ -340,30 +340,8 @@ export default function ProjectsPage() {
         }
       `}</style>
 
-      {/* HEADER */}
-      <header className="fixed top-0 left-0 z-40 w-full px-4 md:px-[2.5vw] py-3 md:py-[3vh] flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-0 bg-white/90 backdrop-blur-md md:bg-white transform-gpu border-b border-neutral-100 md:border-none">
-        <Link
-          href="/"
-          className="text-xs md:text-sm tracking-[0.18em] text-black hover:opacity-50 transition-opacity whitespace-nowrap font-medium"
-        >
-          XU JIANGQI
-        </Link>
-
-        <nav className="flex items-center gap-4 md:gap-[3vw] text-[10px] md:text-xs tracking-[0.18em] uppercase text-black">
-          <Link href="/" className="hover:opacity-50 transition-opacity">
-            WORK
-          </Link>
-          <Link href="/projects" className="opacity-40">
-            PROJECTS
-          </Link>
-          <Link href="/about" className="hover:opacity-50 transition-opacity">
-            ABOUT
-          </Link>
-        </nav>
-      </header>
-
-      {/* MAIN CONTENT */}
-      <div className="pt-[11vh] md:pt-[15vh] px-4 md:px-[2.5vw] h-full overflow-y-auto md:overflow-hidden flex-1 pb-12 md:pb-[4vh]">
+      {/* MAIN CONTENT (已删去多余的 header，调整 pt-16 避开单行 Header) */}
+      <div className="pt-16 md:pt-[12vh] px-4 md:px-[2.5vw] h-full overflow-y-auto md:overflow-hidden flex-1 pb-12 md:pb-[4vh]">
         
         {/* ==================== 移动端专属布局 ==================== */}
         <div className="flex md:hidden flex-col gap-6 w-full">
@@ -791,7 +769,6 @@ export default function ProjectsPage() {
                 </button>
               </div>
             ) : (
-              /* 已修正：加入 py-2 内边距，使用 ring-2 完美替代 border，保证选中白框 4 边完全不被剥落或隐藏 */
               <div
                 ref={thumbContainerRef}
                 className="w-full overflow-x-auto no-scrollbar flex items-center gap-3 px-[50%] py-2"
@@ -817,9 +794,7 @@ export default function ProjectsPage() {
                     >
                       <img
                         src={imgSrc}
-                        alt=""
-                        loading="lazy"
-                        decoding="async"
+                        alt={`${activeTitle} thumb ${imgIdx + 1}`}
                         className="w-full h-full object-cover pointer-events-none"
                       />
                     </button>
