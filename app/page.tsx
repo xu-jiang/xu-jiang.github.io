@@ -65,13 +65,10 @@ export default function Home() {
     const getResponsivePattern = () => {
       const width = window.innerWidth;
       if (width < 768) {
-        // 手机端 (< 768px)：固定 2 列
         return MOBILE_PATTERNS[Math.floor(Math.random() * MOBILE_PATTERNS.length)];
       } else if (width < 1024) {
-        // 平板端 (768px ~ 1023px)：固定 2 列
         return TABLET_PATTERNS[Math.floor(Math.random() * TABLET_PATTERNS.length)];
       } else {
-        // 电脑端 (>= 1024px)：多列
         return DESKTOP_PATTERNS[Math.floor(Math.random() * DESKTOP_PATTERNS.length)];
       }
     };
@@ -95,28 +92,26 @@ export default function Home() {
       }
     });
 
-    // 3. 计算渐显延迟与时长（按原版 90% 压缩时长）
+    // 3. 计算渐显延迟与时长
     const photosWithAnimation: Photo[] = shuffledSrcs.map((src, index) => {
       let delay = 0;
 
       if (index < colsCount) {
-        // 【第一行图片逻辑】
+        // 【第一行首批图片逻辑】
         if (index === mainBigImageColIndex) {
-          // 第一行大图独占前场，1170ms (1300ms * 0.9) 启动
-          delay = 1170;
+          delay = 1800;
         } else {
-          // 第一行其他图在 1170ms ~ 2250ms 之间跟随出现
-          delay = 1170 + Math.floor(Math.random() * 1080);
+          delay = 2000 + Math.floor(Math.random() * 800);
         }
       } else {
-        // 【后续图片逻辑】：2430ms (2700ms * 0.9) 之后起步，在 7200ms (8000ms * 0.9) 跨度内随机散落
-        const baseOffset = 2430;
-        const randomJitter = Math.floor(Math.random() * 7200);
+        // 【后续图片逻辑】
+        const baseOffset = 2400;
+        const randomJitter = Math.floor(Math.random() * 2800);
         delay = baseOffset + randomJitter;
       }
 
-      // 渐变时长：1800ms ~ 4500ms（整体缩减 10% 的柔和淡入）
-      const duration = 1800 + Math.floor(Math.random() * 2700);
+      // 淡入时长：1400ms ~ 2600ms
+      const duration = 1400 + Math.floor(Math.random() * 1200);
 
       return {
         id: index + 1,
@@ -139,7 +134,7 @@ export default function Home() {
     };
     window.addEventListener("resize", handleResize);
 
-    // 5. 监听手机端上下滑动：滑动距离超过阈值（例如 40px）即刷新页面
+    // 5. 监听手机端上下滑动：滑动距离超过 40px 即刷新页面
     let touchStartY = 0;
     const handleTouchStart = (e: TouchEvent) => {
       touchStartY = e.touches[0].clientY;
@@ -176,15 +171,22 @@ export default function Home() {
           transitionProperty: "opacity, transform",
           transitionDuration: `${photo.duration}ms`,
           transitionDelay: `${photo.delay}ms`,
-          transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
+          transitionTimingFunction: "cubic-bezier(0.25, 1, 0.5, 1)",
           opacity: isReady ? 1 : 0,
-          transform: isReady ? "translateY(0px) scale(1)" : "translateY(16px) scale(0.98)",
+          transform: isReady ? "translateY(0px) scale(1)" : "translateY(20px) scale(0.97)",
         }}
       >
         <img
           src={photo.src}
           alt={photo.title}
           loading="eager"
+          /* 当图片路径在服务器上不存在（如 404） 时，静默隐去该卡片容器 */
+          onError={(e) => {
+            const container = (e.target as HTMLElement).parentElement;
+            if (container) {
+              container.style.display = "none";
+            }
+          }}
           className="w-full h-auto block rounded-none select-none transition-transform duration-1000 ease-out hover:scale-[1.02]"
         />
       </div>
@@ -201,11 +203,9 @@ export default function Home() {
     );
   }
 
-  // 统一左右留白边距定义
   const CONTAINER_PADDING = "px-4 md:px-[2vw]";
   const currentColumnCount = colWidths.length;
 
-  // 动态将所有照片按当前的列数进行均分流式分配
   const columnsData: Photo[][] = Array.from({ length: currentColumnCount }, () => []);
   photos.forEach((photo, index) => {
     const targetColIndex = index % currentColumnCount;
