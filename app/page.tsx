@@ -61,7 +61,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    // 1. 根据当前屏幕宽度自动选择对应的列数与比例策略
+    // 1. 响应式比例策略
     const getResponsivePattern = () => {
       const width = window.innerWidth;
       if (width < 768) {
@@ -79,10 +79,8 @@ export default function Home() {
     // 2. 去重与洗牌
     const uniqueImageSrcs = Array.from(new Set(PORTFOLIO_IMAGES));
     const shuffledSrcs = shuffleArray(uniqueImageSrcs);
-
     const colsCount = pattern.length;
 
-    // 找出第一行中宽度最大（大图）的列索引
     let maxColWidth = -1;
     let mainBigImageColIndex = 0;
     pattern.forEach((w, idx) => {
@@ -92,25 +90,22 @@ export default function Home() {
       }
     });
 
-    // 3. 计算渐显延迟与时长
+    // 3. 计算淡入延迟与时长
     const photosWithAnimation: Photo[] = shuffledSrcs.map((src, index) => {
       let delay = 0;
 
       if (index < colsCount) {
-        // 【第一行首批图片逻辑】
         if (index === mainBigImageColIndex) {
           delay = 1800;
         } else {
           delay = 2000 + Math.floor(Math.random() * 800);
         }
       } else {
-        // 【后续图片逻辑】
         const baseOffset = 2400;
         const randomJitter = Math.floor(Math.random() * 2800);
         delay = baseOffset + randomJitter;
       }
 
-      // 淡入时长：1400ms ~ 2600ms
       const duration = 1400 + Math.floor(Math.random() * 1200);
 
       return {
@@ -128,13 +123,13 @@ export default function Home() {
       setIsReady(true);
     }, 60);
 
-    // 4. 监听 resize 动态调整列数与布局比例
+    // 4. Resize 监听
     const handleResize = () => {
       setColWidths(getResponsivePattern());
     };
     window.addEventListener("resize", handleResize);
 
-    // 5. 监听手机端上下滑动：滑动距离超过 40px 即刷新页面
+    // 5. 手机端上下滑动手势刷新
     let touchStartY = 0;
     const handleTouchStart = (e: TouchEvent) => {
       touchStartY = e.touches[0].clientY;
@@ -148,14 +143,35 @@ export default function Home() {
       }
     };
 
-    window.addEventListener("touchstart", handleTouchStart);
-    window.addEventListener("touchend", handleTouchEnd);
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchend", handleTouchEnd, { passive: true });
+
+    // 6. 1分钟无操作自动刷新
+    let idleTimer: NodeJS.Timeout | null = null;
+
+    const resetIdleTimer = () => {
+      if (idleTimer) clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => {
+        handlePageRefresh();
+      }, 60000);
+    };
+
+    const activityEvents = ["mousemove", "mousedown", "keydown", "touchstart", "scroll"];
+    activityEvents.forEach((event) => {
+      window.addEventListener(event, resetIdleTimer, { passive: true });
+    });
+
+    resetIdleTimer();
 
     return () => {
       clearTimeout(timer);
+      if (idleTimer) clearTimeout(idleTimer);
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("touchend", handleTouchEnd);
+      activityEvents.forEach((event) => {
+        window.removeEventListener(event, resetIdleTimer);
+      });
     };
   }, []);
 
@@ -180,7 +196,6 @@ export default function Home() {
           src={photo.src}
           alt={photo.title}
           loading="eager"
-          /* 当图片路径在服务器上不存在（如 404） 时，静默隐去该卡片容器 */
           onError={(e) => {
             const container = (e.target as HTMLElement).parentElement;
             if (container) {
