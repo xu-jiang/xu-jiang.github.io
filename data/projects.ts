@@ -111,6 +111,8 @@ export const PROJECTS: Project[] = [
       "/images/projects/human-garden/16.jpg",
       "/images/projects/human-garden/17.jpg",
       "/images/projects/human-garden/18.jpg",
+      "/images/projects/human-garden/19.jpg",
+      "/images/projects/human-garden/20.jpg",
     ],
   },
   {
