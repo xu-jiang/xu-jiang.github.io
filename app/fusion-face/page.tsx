@@ -42,6 +42,26 @@ export default function FusionFacePage() {
       .catch(() => setMeta(null));
   }, []);
 
+  // 摄像头打开后，把 stream 挂到 <video> 上并播放
+  // 手机端必须等 <video> 真正挂载后再设置 srcObject，否则黑屏
+  useEffect(() => {
+    if (!cameraOpen) return;
+    const video = videoRef.current;
+    const stream = streamRef.current;
+    if (!video || !stream) return;
+
+    video.srcObject = stream;
+    video.muted = true;
+    video.playsInline = true;
+
+    const playPromise = video.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch(() => {
+        // 部分手机浏览器需要用户手势才允许播放，忽略错误
+      });
+    }
+  }, [cameraOpen, cameraFacing]);
+
   const t = (en: string, fr: string) => (language === "FR" ? fr : en);
 
   const pool = useMemo<string[]>(() => {
@@ -118,12 +138,6 @@ export default function FusionFacePage() {
         setUserImageSrc(null);
         setResultDataUrl(null);
         resetTransform();
-        setTimeout(() => {
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-            videoRef.current.play();
-          }
-        }, 50);
       } catch {
         alert(t("Camera not available.", "Caméra non disponible."));
       }
@@ -578,17 +592,14 @@ export default function FusionFacePage() {
           </p>
         </div>
 
-        {/* 画布：全宽 */}
         <div className="w-full px-0">
           {renderCanvas()}
         </div>
 
-        {/* 按钮 */}
         <div className="px-5 pt-3">
           {renderButtons()}
         </div>
 
-        {/* 设置 */}
         <div className="px-5 pt-6 pb-10">
           {renderSettings()}
         </div>
