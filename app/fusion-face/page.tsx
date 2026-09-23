@@ -29,12 +29,11 @@ export default function FusionFacePage() {
   const [cameraOpen, setCameraOpen] = useState(false);
   const [cameraFacing, setCameraFacing] = useState<"user" | "environment">("user");
 
-  // 两个 <video>（手机端 + 桌面端），各用独立 ref
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const desktopVideoRef = useRef<HTMLVideoElement | null>(null);
-
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const [offset, setOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [scale, setScale] = useState<number>(1);
   const dragRef = useRef({ startX: 0, startY: 0, baseX: 0, baseY: 0, active: false });
@@ -46,11 +45,8 @@ export default function FusionFacePage() {
       .catch(() => setMeta(null));
   }, []);
 
-  // 摄像头打开后，把 stream 同时挂到两个 <video> 上
-  // 手机端和桌面端各有一个 <video>，都要挂载才能在任何屏幕宽度下正常显示
   useEffect(() => {
     if (!cameraOpen) return;
-
     let cancelled = false;
     let rafId: number | null = null;
     let attempts = 0;
@@ -58,26 +54,19 @@ export default function FusionFacePage() {
 
     const attach = () => {
       if (cancelled) return;
-
       const stream = streamRef.current;
       const videos = [videoRef.current, desktopVideoRef.current].filter(
         (v): v is HTMLVideoElement => !!v
       );
-
       if (videos.length > 0 && stream) {
         videos.forEach((v) => {
-          if (v.srcObject !== stream) {
-            v.srcObject = stream;
-          }
+          if (v.srcObject !== stream) v.srcObject = stream;
           v.muted = true;
           v.playsInline = true;
-          v.play().catch(() => {
-            // 忽略，稍后重试
-          });
+          v.play().catch(() => {});
         });
         return;
       }
-
       if (attempts < MAX_ATTEMPTS) {
         attempts++;
         rafId = window.requestAnimationFrame(attach);
@@ -85,7 +74,6 @@ export default function FusionFacePage() {
     };
 
     attach();
-
     return () => {
       cancelled = true;
       if (rafId !== null) window.cancelAnimationFrame(rafId);
@@ -187,7 +175,6 @@ export default function FusionFacePage() {
   }, [cameraFacing, openCamera]);
 
   const captureFromCamera = useCallback(() => {
-    // 优先用有画面的 video
     const mobileV = videoRef.current;
     const desktopV = desktopVideoRef.current;
     const video =
@@ -367,7 +354,6 @@ export default function FusionFacePage() {
 
   const canFuse = userImage !== null && selectedTags.size > 0 && availableCount >= MIN_SAMPLES && !isFusing;
 
-  // ==== 画布本体（手机端） ====
   const renderCanvas = () => (
     <div
       className="relative bg-neutral-800 border border-black overflow-hidden w-full"
@@ -420,7 +406,6 @@ export default function FusionFacePage() {
         </button>
       )}
 
-      {/* outline 图：始终显示（除非有结果图） */}
       {!resultDataUrl && (
         <img
           src="/faces/outline.png"
@@ -453,7 +438,6 @@ export default function FusionFacePage() {
     </div>
   );
 
-  // ==== 按钮组（两处共用） ====
   const renderButtons = () => (
     <div className="w-full flex flex-col gap-2">
       <div className="flex items-center justify-center text-[10px] tracking-[0.15em] uppercase text-neutral-400 min-h-[14px]">
@@ -506,7 +490,6 @@ export default function FusionFacePage() {
     </div>
   );
 
-  // ==== 设置区（两处共用） ====
   const renderSettings = () => (
     <div className="w-full flex flex-col gap-5">
       <div>
@@ -606,7 +589,6 @@ export default function FusionFacePage() {
         .ff-stage-img { touch-action: none; user-select: none; -webkit-user-drag: none; }
       `}</style>
 
-      {/* 顶栏 */}
       <div className="flex items-center justify-between px-4 md:px-10 py-3 border-b border-neutral-100 shrink-0">
         <Link href="/projects" className="text-[11px] tracking-[0.2em] uppercase text-neutral-400 hover:text-black transition-colors">
           ← {t("Back to projects", "Retour aux projets")}
@@ -618,7 +600,6 @@ export default function FusionFacePage() {
         </div>
       </div>
 
-      {/* ============ 手机端：纵向堆叠 ============ */}
       <div className="md:hidden flex flex-col w-full">
         <div className="px-5 pt-6 pb-4">
           <h1 className="text-2xl font-light tracking-wide mb-2">
@@ -632,8 +613,10 @@ export default function FusionFacePage() {
           </p>
         </div>
 
-        <div className="w-full px-0">
-          {renderCanvas()}
+        <div className="w-full flex justify-center px-0">
+          <div style={{ width: "70%" }}>
+            {renderCanvas()}
+          </div>
         </div>
 
         <div className="px-5 pt-3">
@@ -645,7 +628,6 @@ export default function FusionFacePage() {
         </div>
       </div>
 
-      {/* ============ 桌面端：左右分栏 ============ */}
       <div className="hidden md:flex flex-1 min-h-0 flex-row">
         <div className="flex-1 min-h-0 flex flex-col items-center justify-center px-4 py-4 bg-white overflow-hidden">
           <div className="flex-1 min-h-0 w-full flex items-center justify-center p-[2.5%]">
