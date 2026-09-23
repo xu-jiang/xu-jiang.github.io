@@ -28,7 +28,11 @@ export default function FusionFacePage() {
   const [sampleCount, setSampleCount] = useState<number>(DEFAULT_SAMPLES);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [cameraFacing, setCameraFacing] = useState<"user" | "environment">("user");
+
+  // 两个 <video>（手机端 + 桌面端），各用独立 ref
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const desktopVideoRef = useRef<HTMLVideoElement | null>(null);
+
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [offset, setOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -42,24 +46,50 @@ export default function FusionFacePage() {
       .catch(() => setMeta(null));
   }, []);
 
-  // 摄像头打开后，把 stream 挂到 <video> 上并播放
-  // 手机端必须等 <video> 真正挂载后再设置 srcObject，否则黑屏
+  // 摄像头打开后，把 stream 同时挂到两个 <video> 上
+  // 手机端和桌面端各有一个 <video>，都要挂载才能在任何屏幕宽度下正常显示
   useEffect(() => {
     if (!cameraOpen) return;
-    const video = videoRef.current;
-    const stream = streamRef.current;
-    if (!video || !stream) return;
 
-    video.srcObject = stream;
-    video.muted = true;
-    video.playsInline = true;
+    let cancelled = false;
+    let rafId: number | null = null;
+    let attempts = 0;
+    const MAX_ATTEMPTS = 60;
 
-    const playPromise = video.play();
-    if (playPromise && typeof playPromise.catch === "function") {
-      playPromise.catch(() => {
-        // 部分手机浏览器需要用户手势才允许播放，忽略错误
-      });
-    }
+    const attach = () => {
+      if (cancelled) return;
+
+      const stream = streamRef.current;
+      const videos = [videoRef.current, desktopVideoRef.current].filter(
+        (v): v is HTMLVideoElement => !!v
+      );
+
+      if (videos.length > 0 && stream) {
+        videos.forEach((v) => {
+          if (v.srcObject !== stream) {
+            v.srcObject = stream;
+          }
+          v.muted = true;
+          v.playsInline = true;
+          v.play().catch(() => {
+            // 忽略，稍后重试
+          });
+        });
+        return;
+      }
+
+      if (attempts < MAX_ATTEMPTS) {
+        attempts++;
+        rafId = window.requestAnimationFrame(attach);
+      }
+    };
+
+    attach();
+
+    return () => {
+      cancelled = true;
+      if (rafId !== null) window.cancelAnimationFrame(rafId);
+    };
   }, [cameraOpen, cameraFacing]);
 
   const t = (en: string, fr: string) => (language === "FR" ? fr : en);
@@ -157,7 +187,15 @@ export default function FusionFacePage() {
   }, [cameraFacing, openCamera]);
 
   const captureFromCamera = useCallback(() => {
-    const video = videoRef.current;
+    // 优先用有画面的 video
+    const mobileV = videoRef.current;
+    const desktopV = desktopVideoRef.current;
+    const video =
+      desktopV && desktopV.videoWidth > 0
+        ? desktopV
+        : mobileV && mobileV.videoWidth > 0
+        ? mobileV
+        : mobileV || desktopV;
     if (!video) return;
     const canvas = document.createElement("canvas");
     canvas.width = video.videoWidth;
@@ -329,7 +367,7 @@ export default function FusionFacePage() {
 
   const canFuse = userImage !== null && selectedTags.size > 0 && availableCount >= MIN_SAMPLES && !isFusing;
 
-  // ==== 画布本体（两处共用） ====
+  // ==== 画布本体（手机端） ====
   const renderCanvas = () => (
     <div
       className="relative bg-neutral-800 border border-black overflow-hidden w-full"
@@ -339,6 +377,7 @@ export default function FusionFacePage() {
         <video
           ref={videoRef}
           className={`absolute inset-0 w-full h-full object-cover ${cameraFacing === "user" ? "scale-x-[-1]" : ""}`}
+          autoPlay
           playsInline
           muted
         />
@@ -381,6 +420,7 @@ export default function FusionFacePage() {
         </button>
       )}
 
+      {/* outline 图：始终显示（除非有结果图） */}
       {!resultDataUrl && (
         <img
           src="/faces/outline.png"
@@ -611,7 +651,13 @@ export default function FusionFacePage() {
           <div className="flex-1 min-h-0 w-full flex items-center justify-center p-[2.5%]">
             <div className="relative bg-neutral-800 border border-black overflow-hidden" style={{ aspectRatio: "3 / 4", height: "100%", maxWidth: "100%" }}>
               {cameraOpen ? (
-                <video ref={videoRef} className={`absolute inset-0 w-full h-full object-cover ${cameraFacing === "user" ? "scale-x-[-1]" : ""}`} playsInline muted />
+                <video
+                  ref={desktopVideoRef}
+                  className={`absolute inset-0 w-full h-full object-cover ${cameraFacing === "user" ? "scale-x-[-1]" : ""}`}
+                  autoPlay
+                  playsInline
+                  muted
+                />
               ) : resultDataUrl ? (
                 <img src={resultDataUrl} alt="result" className="absolute inset-0 w-full h-full object-cover" />
               ) : userImageSrc ? (
