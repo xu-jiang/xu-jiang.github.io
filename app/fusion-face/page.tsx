@@ -32,6 +32,7 @@ export default function FusionFacePage() {
   const [sampleCount, setSampleCount] = useState<number>(DEFAULT_SAMPLES);
 
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraFacing, setCameraFacing] = useState<"user" | "environment">("user");
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -116,34 +117,44 @@ export default function FusionFacePage() {
     if (f) handleFile(f);
   };
 
-  const openCamera = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user", width: 1280, height: 720 },
-        audio: false,
-      });
-      streamRef.current = stream;
-      setCameraOpen(true);
-      setUserImage(null);
-      setUserImageSrc(null);
-      setResultDataUrl(null);
-      resetTransform();
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play();
-        }
-      }, 50);
-    } catch {
-      alert(t("Camera not available.", "Caméra non disponible."));
-    }
-  }, [language, resetTransform]);
+  const openCamera = useCallback(
+    async (facing: "user" | "environment" = "user") => {
+      try {
+        streamRef.current?.getTracks().forEach((tr) => tr.stop());
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: facing, width: 1280, height: 720 },
+          audio: false,
+        });
+        streamRef.current = stream;
+        setCameraFacing(facing);
+        setCameraOpen(true);
+        setUserImage(null);
+        setUserImageSrc(null);
+        setResultDataUrl(null);
+        resetTransform();
+        setTimeout(() => {
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            videoRef.current.play();
+          }
+        }, 50);
+      } catch {
+        alert(t("Camera not available.", "Caméra non disponible."));
+      }
+    },
+    [language, resetTransform]
+  );
 
   const closeCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((tr) => tr.stop());
     streamRef.current = null;
     setCameraOpen(false);
   }, []);
+
+  const switchCamera = useCallback(() => {
+    const next = cameraFacing === "user" ? "environment" : "user";
+    openCamera(next);
+  }, [cameraFacing, openCamera]);
 
   const captureFromCamera = useCallback(() => {
     const video = videoRef.current;
@@ -152,7 +163,17 @@ export default function FusionFacePage() {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     const ctx = canvas.getContext("2d")!;
-    ctx.drawImage(video, 0, 0);
+
+    if (cameraFacing === "user") {
+      ctx.save();
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(video, 0, 0);
+      ctx.restore();
+    } else {
+      ctx.drawImage(video, 0, 0);
+    }
+
     canvas.toBlob(
       (blob) => {
         if (!blob) return;
@@ -163,7 +184,7 @@ export default function FusionFacePage() {
       "image/jpeg",
       0.92
     );
-  }, [handleFile, closeCamera]);
+  }, [handleFile, closeCamera, cameraFacing]);
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (!userImageSrc || resultDataUrl) return;
@@ -375,10 +396,13 @@ export default function FusionFacePage() {
           user-select: none;
           -webkit-user-drag: none;
         }
+        .ff-stage-mirror {
+          transform: scaleX(-1);
+        }
       `}</style>
 
       {/* 顶栏 */}
-      <div className="flex items-center justify-between px-6 md:px-10 py-3 border-b border-neutral-100 shrink-0">
+      <div className="flex items-center justify-between px-4 md:px-10 py-2 md:py-3 border-b border-neutral-100 shrink-0">
         <Link
           href="/projects"
           className="text-[11px] tracking-[0.2em] uppercase text-neutral-400 hover:text-black transition-colors"
@@ -407,21 +431,24 @@ export default function FusionFacePage() {
       {/* 主内容 */}
       <div className="flex-1 min-h-0 flex flex-col md:flex-row">
         {/* ===== 左：画布区 ===== */}
-        <div className="flex-1 min-h-0 flex flex-col items-center justify-center px-4 py-4 bg-white overflow-hidden">
-          {/* 画布外层：加 padding 让画布整体缩小到约 95% */}
-          <div className="flex-1 min-h-0 w-full flex items-center justify-center p-[2.5%]">
+        <div className="flex-1 min-h-0 flex flex-col items-center justify-center px-1 md:px-4 py-2 md:py-4 bg-white overflow-hidden">
+          {/* 画布外层：手机端几乎零 padding，桌面端保留 2.5% */}
+          <div className="flex-1 min-h-0 w-full flex items-center justify-center p-0 md:p-[2.5%]">
             <div
-              className="relative bg-neutral-800 border border-black overflow-hidden"
+              className="relative bg-neutral-800 border border-black overflow-hidden mx-auto"
               style={{
                 aspectRatio: "3 / 4",
                 height: "100%",
+                maxHeight: "100%",
                 maxWidth: "100%",
               }}
             >
               {cameraOpen ? (
                 <video
                   ref={videoRef}
-                  className="absolute inset-0 w-full h-full object-cover"
+                  className={`absolute inset-0 w-full h-full object-cover ${
+                    cameraFacing === "user" ? "scale-x-[-1]" : ""
+                  }`}
                   playsInline
                   muted
                 />
@@ -468,7 +495,6 @@ export default function FusionFacePage() {
                 </button>
               )}
 
-              {/* 模版图：70% 透明度，浮在照片上方 */}
               {!resultDataUrl && (
                 <img
                   src="/faces/outline.png"
@@ -487,6 +513,19 @@ export default function FusionFacePage() {
                 </div>
               )}
 
+              {cameraOpen && (
+                <button
+                  type="button"
+                  onClick={switchCamera}
+                  className="absolute top-3 right-3 z-30 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white text-[10px] tracking-[0.15em] uppercase backdrop-blur-sm transition-colors"
+                  title={t("Switch camera", "Changer de caméra")}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                </button>
+              )}
+
               <input
                 ref={fileInputRef}
                 type="file"
@@ -498,7 +537,7 @@ export default function FusionFacePage() {
           </div>
 
           {/* 画布下方：状态 + 按钮组 */}
-          <div className="w-full max-w-[360px] mt-3 flex flex-col gap-2 shrink-0">
+          <div className="w-full max-w-[420px] px-2 md:px-0 mt-2 md:mt-3 flex flex-col gap-2 shrink-0">
             <div className="flex items-center justify-center text-[10px] tracking-[0.15em] uppercase text-neutral-400 min-h-[14px]">
               {cameraOpen
                 ? t("Camera ready · capture or cancel", "Caméra prête · capturez ou annulez")
@@ -575,7 +614,7 @@ export default function FusionFacePage() {
                 </button>
                 <button
                   type="button"
-                  onClick={openCamera}
+                  onClick={() => openCamera("user")}
                   className="flex-1 py-2.5 border border-black text-[11px] tracking-[0.15em] uppercase hover:bg-black hover:text-white transition-colors"
                 >
                   {t("Camera", "Caméra")}
@@ -586,7 +625,7 @@ export default function FusionFacePage() {
         </div>
 
         {/* ===== 右：控制区 ===== */}
-        <div className="w-full md:w-[360px] lg:w-[400px] shrink-0 border-t md:border-t-0 md:border-l border-neutral-100 overflow-y-auto no-scrollbar px-6 md:px-8 py-5 md:py-6 flex flex-col gap-6">
+        <div className="w-full md:w-[360px] lg:w-[400px] shrink-0 border-t md:border-t-0 md:border-l border-neutral-100 overflow-y-auto no-scrollbar px-5 md:px-8 py-4 md:py-6 flex flex-col gap-4 md:gap-6">
           <div>
             <h1 className="text-xl md:text-2xl font-light tracking-wide mb-2">
               {t("Fusion Face", "Visage Fusionné")}
@@ -599,7 +638,6 @@ export default function FusionFacePage() {
             </p>
           </div>
 
-          {/* 分类 */}
           <div>
             <div className="text-[11px] tracking-[0.2em] uppercase text-neutral-400 mb-3">
               01 / {t("Categories", "Catégories")}
@@ -631,7 +669,6 @@ export default function FusionFacePage() {
             </div>
           </div>
 
-          {/* 样本数 */}
           <div>
             <div className="flex items-center justify-between mb-3">
               <div className="text-[11px] tracking-[0.2em] uppercase text-neutral-400">
@@ -674,7 +711,6 @@ export default function FusionFacePage() {
             </div>
           </div>
 
-          {/* 主按钮 */}
           <div className="flex flex-col gap-2 mt-auto">
             <button
               type="button"
