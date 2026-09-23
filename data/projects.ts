@@ -240,12 +240,12 @@ export const PROJECTS: Project[] = [
     titleEn: "Fusion Face",
     titleFr: "Visage Fusionné",
     category: "Interactive / AI",
-    year: "2025",
+    year: "2026",
     month: "",
     descriptionEn:
-      "An interactive experiment on identity and averages. Choose a category — man, woman, or baby — upload or capture your portrait, and fuse it with ten randomly selected faces from an archive of 500 ID photos.\n\nThe result is an averaged portrait: neither you nor them, but somewhere in between.",
+      "An interactive experiment on identity and averages. Choose a category — man, woman, or child — upload or capture your portrait, and fuse it with ten randomly selected faces from an archive of 500 ID photos.\n\nThe result is an averaged portrait: neither you nor them, but somewhere in between.",
     descriptionFr:
-      "Une expérience interactive sur l'identité et la moyenne. Choisissez une catégorie — homme, femme, ou bébé — importez ou capturez votre portrait, et fusionnez-le avec dix visages tirés au hasard parmi une archive de 500 photos d'identité.\n\nLe résultat est un portrait moyen : ni vous, ni eux, mais quelque part entre les deux.",
+      "Une expérience interactive sur l'identité et la moyenne. Choisissez une catégorie — homme, femme, ou enfant — importez ou capturez votre portrait, et fusionnez-le avec dix visages tirés au hasard parmi une archive de 500 photos d'identité.\n\nLe résultat est un portrait moyen : ni vous, ni eux, mais quelque part entre les deux.",
     coverCaptionEn: "Fuse your portrait with an archive of 500 faces.",
     coverCaptionFr: "Fusionnez votre portrait avec une archive de 500 visages.",
     cover: "/faces/samples/01.jpg",

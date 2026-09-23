@@ -361,8 +361,313 @@ export default function FusionFacePage() {
     availableCount >= MIN_SAMPLES &&
     !isFusing;
 
+  // 画布本体（主视图和手机端共用）
+  const canvasNode = (
+    <div
+      className="relative bg-neutral-800 border border-black overflow-hidden w-full"
+      style={{
+        aspectRatio: "3 / 4",
+      }}
+    >
+      {cameraOpen ? (
+        <video
+          ref={videoRef}
+          className={`absolute inset-0 w-full h-full object-cover ${
+            cameraFacing === "user" ? "scale-x-[-1]" : ""
+          }`}
+          playsInline
+          muted
+        />
+      ) : resultDataUrl ? (
+        <img
+          src={resultDataUrl}
+          alt="result"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      ) : userImageSrc ? (
+        <div
+          className="absolute inset-0 cursor-move"
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onWheel={onWheel}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+        >
+          <img
+            src={userImageSrc}
+            alt="user"
+            draggable={false}
+            className="ff-stage-img absolute inset-0 w-full h-full object-cover"
+            style={{
+              transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
+              transformOrigin: "center center",
+            }}
+          />
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-neutral-300 hover:text-white transition-colors cursor-pointer"
+        >
+          <span className="text-[11px] tracking-[0.2em] uppercase">
+            {t("Click to upload", "Cliquez pour importer")}
+          </span>
+          <span className="text-[10px] tracking-[0.18em] uppercase opacity-70">
+            {t("or drag & drop", "ou glissez-déposez")}
+          </span>
+        </button>
+      )}
+
+      {!resultDataUrl && (
+        <img
+          src="/faces/outline.png"
+          alt=""
+          draggable={false}
+          className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none z-10"
+          style={{ opacity: 0.7 }}
+        />
+      )}
+
+      {isFusing && (
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center pointer-events-none z-20">
+          <span className="text-[11px] tracking-[0.25em] uppercase text-white animate-pulse">
+            {t("Fusing...", "Fusion en cours...")}
+          </span>
+        </div>
+      )}
+
+      {cameraOpen && (
+        <button
+          type="button"
+          onClick={switchCamera}
+          className="absolute top-3 right-3 z-30 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white backdrop-blur-sm transition-colors"
+          title={t("Switch camera", "Changer de caméra")}
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </button>
+      )}
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileInput}
+      />
+    </div>
+  );
+
+  const buttonsNode = (
+    <div className="w-full flex flex-col gap-2">
+      <div className="flex items-center justify-center text-[10px] tracking-[0.15em] uppercase text-neutral-400 min-h-[14px]">
+        {cameraOpen
+          ? t("Camera ready · capture or cancel", "Caméra prête · capturez ou annulez")
+          : resultDataUrl
+          ? t("Fused result", "Résultat fusionné")
+          : userImageSrc
+          ? t("Drag to align · scroll to zoom", "Glissez · molette pour zoomer")
+          : t("No image", "Aucune image")}
+      </div>
+
+      {cameraOpen ? (
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={closeCamera}
+            className="flex-1 py-2.5 border border-neutral-200 text-[11px] tracking-[0.15em] uppercase hover:border-black transition-colors"
+          >
+            {t("Cancel", "Annuler")}
+          </button>
+          <button
+            type="button"
+            onClick={captureFromCamera}
+            className="flex-1 py-2.5 border border-black bg-black text-white text-[11px] tracking-[0.15em] uppercase hover:bg-white hover:text-black transition-colors"
+          >
+            {t("Capture", "Capturer")}
+          </button>
+        </div>
+      ) : resultDataUrl ? (
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setResultDataUrl(null)}
+            className="flex-1 py-2.5 border border-neutral-200 text-[11px] tracking-[0.15em] uppercase hover:border-black transition-colors"
+          >
+            {t("Back to edit", "Modifier")}
+          </button>
+          <button
+            type="button"
+            onClick={handleDownload}
+            className="flex-1 py-2.5 border border-black bg-black text-white text-[11px] tracking-[0.15em] uppercase hover:bg-white hover:text-black transition-colors"
+          >
+            {t("Download ↗", "Télécharger ↗")}
+          </button>
+        </div>
+      ) : userImageSrc ? (
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setUserImage(null);
+              setUserImageSrc(null);
+              resetTransform();
+            }}
+            className="flex-1 py-2.5 border border-neutral-200 text-[11px] tracking-[0.15em] uppercase hover:border-black transition-colors"
+          >
+            {t("Remove", "Retirer")}
+          </button>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="flex-1 py-2.5 border border-black text-[11px] tracking-[0.15em] uppercase hover:bg-black hover:text-white transition-colors"
+          >
+            {t("Change", "Changer")}
+          </button>
+        </div>
+      ) : (
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="flex-1 py-2.5 border border-black text-[11px] tracking-[0.15em] uppercase hover:bg-black hover:text-white transition-colors"
+          >
+            {t("Upload", "Importer")}
+          </button>
+          <button
+            type="button"
+            onClick={() => openCamera("user")}
+            className="flex-1 py-2.5 border border-black text-[11px] tracking-[0.15em] uppercase hover:bg-black hover:text-white transition-colors"
+          >
+            {t("Camera", "Caméra")}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
+  const settingsNode = (
+    <div className="w-full flex flex-col gap-4 md:gap-6">
+      {/* 分类 */}
+      <div>
+        <div className="text-[11px] tracking-[0.2em] uppercase text-neutral-400 mb-3">
+          01 / {t("Categories", "Catégories")}
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {CATEGORIES.map((c) => {
+            const isSelected = selectedTags.has(c.value);
+            const count = meta ? (meta[c.value] || []).length : 0;
+            return (
+              <button
+                key={c.value}
+                type="button"
+                onClick={() => toggleTag(c.value)}
+                className={`flex flex-col items-center justify-center text-center py-3 px-1 border text-[13px] tracking-wide transition-all ${
+                  isSelected
+                    ? "border-black bg-black text-white"
+                    : "border-neutral-200 hover:border-black"
+                }`}
+              >
+                <span className="font-medium">
+                  {language === "FR" ? c.labelFr : c.labelEn}
+                </span>
+                <span className="text-[11px] tracking-[0.15em] mt-1 text-neutral-400">
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 样本数 */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <div className="text-[11px] tracking-[0.2em] uppercase text-neutral-400">
+            02 / {t("Sample size", "Échantillons")}
+          </div>
+          <div className="text-base tracking-wide font-medium">
+            {selectedTags.size === 0
+              ? "—"
+              : availableCount === 0
+              ? "0"
+              : sampleCount}
+          </div>
+        </div>
+        <input
+          type="range"
+          className="ff-range"
+          min={MIN_SAMPLES}
+          max={maxSamples}
+          value={
+            availableCount === 0
+              ? MIN_SAMPLES
+              : Math.min(sampleCount, maxSamples)
+          }
+          disabled={availableCount === 0}
+          onChange={(e) => setSampleCount(Number(e.target.value))}
+        />
+        <div className="flex items-center justify-between text-[11px] tracking-[0.15em] uppercase text-neutral-400 mt-2">
+          <span>{MIN_SAMPLES}</span>
+          <span>
+            {t("Pool", "Réserve")}: {availableCount}
+          </span>
+          <span>{availableCount === 0 ? "—" : maxSamples}</span>
+        </div>
+        <div className="text-[11px] tracking-[0.12em] uppercase text-neutral-400 leading-relaxed mt-3">
+          ℹ{" "}
+          {t(
+            "More samples, more realistic.",
+            "Plus d'échantillons, plus réaliste."
+          )}
+        </div>
+      </div>
+
+      {/* 主按钮 */}
+      <div className="flex flex-col gap-2">
+        <button
+          type="button"
+          onClick={handleFuse}
+          disabled={!canFuse}
+          className={`w-full py-3 text-[12px] tracking-[0.2em] uppercase border transition-all ${
+            !canFuse
+              ? "border-neutral-200 text-neutral-300 cursor-not-allowed"
+              : "border-black bg-black text-white hover:bg-white hover:text-black"
+          }`}
+        >
+          {isFusing
+            ? t("Fusing...", "Fusion en cours...")
+            : resultDataUrl
+            ? t("Regenerate", "Régénérer")
+            : t("Fuse", "Fusionner")}
+        </button>
+
+        {resultDataUrl && (
+          <button
+            type="button"
+            onClick={handleReset}
+            className="w-full py-3 border border-neutral-200 text-[12px] tracking-[0.2em] uppercase hover:border-black transition-all"
+          >
+            {t("Reset all", "Tout réinitialiser")}
+          </button>
+        )}
+      </div>
+
+      <div className="text-[11px] tracking-[0.15em] uppercase text-neutral-400 leading-relaxed">
+        {t(
+          "All processing happens in your browser.",
+          "Tout se passe dans votre navigateur."
+        )}
+      </div>
+    </div>
+  );
+
   return (
-    <main className="h-screen w-screen overflow-hidden bg-white text-black font-['Helvetica','Neue',Helvetica,Arial,sans-serif] select-none font-normal flex flex-col">
+    <main className="min-h-screen w-screen overflow-x-hidden bg-white text-black font-['Helvetica','Neue',Helvetica,Arial,sans-serif] select-none font-normal flex flex-col md:h-screen md:overflow-hidden">
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -396,13 +701,10 @@ export default function FusionFacePage() {
           user-select: none;
           -webkit-user-drag: none;
         }
-        .ff-stage-mirror {
-          transform: scaleX(-1);
-        }
       `}</style>
 
       {/* 顶栏 */}
-      <div className="flex items-center justify-between px-4 md:px-10 py-2 md:py-3 border-b border-neutral-100 shrink-0">
+      <div className="flex items-center justify-between px-4 md:px-10 py-3 border-b border-neutral-100 shrink-0">
         <Link
           href="/projects"
           className="text-[11px] tracking-[0.2em] uppercase text-neutral-400 hover:text-black transition-colors"
@@ -428,18 +730,47 @@ export default function FusionFacePage() {
         </div>
       </div>
 
-      {/* 主内容 */}
-      <div className="flex-1 min-h-0 flex flex-col md:flex-row">
-        {/* ===== 左：画布区 ===== */}
-        <div className="flex-1 min-h-0 flex flex-col items-center justify-center px-1 md:px-4 py-2 md:py-4 bg-white overflow-hidden">
-          {/* 画布外层：手机端几乎零 padding，桌面端保留 2.5% */}
-          <div className="flex-1 min-h-0 w-full flex items-center justify-center p-0 md:p-[2.5%]">
+      {/* ==================== 手机端布局（纵向堆叠） ==================== */}
+      <div className="md:hidden flex flex-col w-full px-0 py-0">
+        {/* 标题 */}
+        <div className="px-5 pt-5 pb-4">
+          <h1 className="text-2xl font-light tracking-wide mb-2">
+            {t("Fusion Face", "Visage Fusionné")}
+          </h1>
+          <p className="text-[13px] leading-[1.7] font-light text-neutral-500">
+            {t(
+              "Upload or capture, align within the outline, then choose categories.",
+              "Importez ou capturez, alignez dans le contour, puis choisissez les catégories."
+            )}
+          </p>
+        </div>
+
+        {/* 画布：宽度 = 手机宽度 */}
+        <div className="w-full px-0">
+          {canvasNode}
+        </div>
+
+        {/* 按钮组 */}
+        <div className="px-5 pt-3">
+          {buttonsNode}
+        </div>
+
+        {/* 设置 */}
+        <div className="px-5 pt-6 pb-10">
+          {settingsNode}
+        </div>
+      </div>
+
+      {/* ==================== 桌面端布局（左右分栏） ==================== */}
+      <div className="hidden md:flex flex-1 min-h-0 flex-row">
+        {/* 左：画布 */}
+        <div className="flex-1 min-h-0 flex flex-col items-center justify-center px-4 py-4 bg-white overflow-hidden">
+          <div className="flex-1 min-h-0 w-full flex items-center justify-center p-[2.5%]">
             <div
-              className="relative bg-neutral-800 border border-black overflow-hidden mx-auto"
+              className="relative bg-neutral-800 border border-black overflow-hidden"
               style={{
                 aspectRatio: "3 / 4",
                 height: "100%",
-                maxHeight: "100%",
                 maxWidth: "100%",
               }}
             >
@@ -517,7 +848,7 @@ export default function FusionFacePage() {
                 <button
                   type="button"
                   onClick={switchCamera}
-                  className="absolute top-3 right-3 z-30 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white text-[10px] tracking-[0.15em] uppercase backdrop-blur-sm transition-colors"
+                  className="absolute top-3 right-3 z-30 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white backdrop-blur-sm transition-colors"
                   title={t("Switch camera", "Changer de caméra")}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -525,261 +856,37 @@ export default function FusionFacePage() {
                   </svg>
                 </button>
               )}
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleFileInput}
-              />
             </div>
           </div>
 
-          {/* 画布下方：状态 + 按钮组 */}
-          <div className="w-full max-w-[420px] px-2 md:px-0 mt-2 md:mt-3 flex flex-col gap-2 shrink-0">
-            <div className="flex items-center justify-center text-[10px] tracking-[0.15em] uppercase text-neutral-400 min-h-[14px]">
-              {cameraOpen
-                ? t("Camera ready · capture or cancel", "Caméra prête · capturez ou annulez")
-                : resultDataUrl
-                ? t("Fused result", "Résultat fusionné")
-                : userImageSrc
-                ? t("Drag to align · scroll to zoom", "Glissez · molette pour zoomer")
-                : t("No image", "Aucune image")}
-            </div>
-
-            {cameraOpen ? (
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={closeCamera}
-                  className="flex-1 py-2.5 border border-neutral-200 text-[11px] tracking-[0.15em] uppercase hover:border-black transition-colors"
-                >
-                  {t("Cancel", "Annuler")}
-                </button>
-                <button
-                  type="button"
-                  onClick={captureFromCamera}
-                  className="flex-1 py-2.5 border border-black bg-black text-white text-[11px] tracking-[0.15em] uppercase hover:bg-white hover:text-black transition-colors"
-                >
-                  {t("Capture", "Capturer")}
-                </button>
-              </div>
-            ) : resultDataUrl ? (
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setResultDataUrl(null)}
-                  className="flex-1 py-2.5 border border-neutral-200 text-[11px] tracking-[0.15em] uppercase hover:border-black transition-colors"
-                >
-                  {t("Back to edit", "Modifier")}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDownload}
-                  className="flex-1 py-2.5 border border-black bg-black text-white text-[11px] tracking-[0.15em] uppercase hover:bg-white hover:text-black transition-colors"
-                >
-                  {t("Download ↗", "Télécharger ↗")}
-                </button>
-              </div>
-            ) : userImageSrc ? (
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setUserImage(null);
-                    setUserImageSrc(null);
-                    resetTransform();
-                  }}
-                  className="flex-1 py-2.5 border border-neutral-200 text-[11px] tracking-[0.15em] uppercase hover:border-black transition-colors"
-                >
-                  {t("Remove", "Retirer")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex-1 py-2.5 border border-black text-[11px] tracking-[0.15em] uppercase hover:bg-black hover:text-white transition-colors"
-                >
-                  {t("Change", "Changer")}
-                </button>
-              </div>
-            ) : (
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex-1 py-2.5 border border-black text-[11px] tracking-[0.15em] uppercase hover:bg-black hover:text-white transition-colors"
-                >
-                  {t("Upload", "Importer")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => openCamera("user")}
-                  className="flex-1 py-2.5 border border-black text-[11px] tracking-[0.15em] uppercase hover:bg-black hover:text-white transition-colors"
-                >
-                  {t("Camera", "Caméra")}
-                </button>
-              </div>
-            )}
+          <div className="w-full max-w-[420px] mt-3 shrink-0">
+            {buttonsNode}
           </div>
         </div>
 
-        {/* ===== 右：控制区 ===== */}
-        <div className="w-full md:w-[360px] lg:w-[400px] shrink-0 border-t md:border-t-0 md:border-l border-neutral-100 overflow-y-auto no-scrollbar px-5 md:px-8 py-4 md:py-6 flex flex-col gap-4 md:gap-6">
+        {/* 右：控制区 */}
+        <div className="w-full md:w-[360px] lg:w-[400px] shrink-0 border-l border-neutral-100 overflow-y-auto no-scrollbar px-8 py-6 flex flex-col gap-6">
           <div>
-            <h1 className="text-xl md:text-2xl font-light tracking-wide mb-2">
+            <h1 className="text-2xl font-light tracking-wide mb-2">
               {t("Fusion Face", "Visage Fusionné")}
             </h1>
-            <p className="text-[13px] md:text-sm leading-[1.7] font-light text-neutral-500">
+            <p className="text-sm leading-[1.7] font-light text-neutral-500">
               {t(
                 "Upload or capture, align within the outline, then choose categories.",
                 "Importez ou capturez, alignez dans le contour, puis choisissez les catégories."
               )}
             </p>
           </div>
-
-          <div>
-            <div className="text-[11px] tracking-[0.2em] uppercase text-neutral-400 mb-3">
-              01 / {t("Categories", "Catégories")}
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {CATEGORIES.map((c) => {
-                const isSelected = selectedTags.has(c.value);
-                const count = meta ? (meta[c.value] || []).length : 0;
-                return (
-                  <button
-                    key={c.value}
-                    type="button"
-                    onClick={() => toggleTag(c.value)}
-                    className={`flex flex-col items-center justify-center text-center py-3 px-1 border text-[13px] tracking-wide transition-all ${
-                      isSelected
-                        ? "border-black bg-black text-white"
-                        : "border-neutral-200 hover:border-black"
-                    }`}
-                  >
-                    <span className="font-medium">
-                      {language === "FR" ? c.labelFr : c.labelEn}
-                    </span>
-                    <span className="text-[11px] tracking-[0.15em] mt-1 text-neutral-400">
-                      {count}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-[11px] tracking-[0.2em] uppercase text-neutral-400">
-                02 / {t("Sample size", "Échantillons")}
-              </div>
-              <div className="text-base tracking-wide font-medium">
-                {selectedTags.size === 0
-                  ? "—"
-                  : availableCount === 0
-                  ? "0"
-                  : sampleCount}
-              </div>
-            </div>
-            <input
-              type="range"
-              className="ff-range"
-              min={MIN_SAMPLES}
-              max={maxSamples}
-              value={
-                availableCount === 0
-                  ? MIN_SAMPLES
-                  : Math.min(sampleCount, maxSamples)
-              }
-              disabled={availableCount === 0}
-              onChange={(e) => setSampleCount(Number(e.target.value))}
-            />
-            <div className="flex items-center justify-between text-[11px] tracking-[0.15em] uppercase text-neutral-400 mt-2">
-              <span>{MIN_SAMPLES}</span>
-              <span>
-                {t("Pool", "Réserve")}: {availableCount}
-              </span>
-              <span>{availableCount === 0 ? "—" : maxSamples}</span>
-            </div>
-            <div className="text-[11px] tracking-[0.12em] uppercase text-neutral-400 leading-relaxed mt-3">
-              ℹ{" "}
-              {t(
-                "More samples, more realistic.",
-                "Plus d'échantillons, plus réaliste."
-              )}
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2 mt-auto">
-            <button
-              type="button"
-              onClick={handleFuse}
-              disabled={!canFuse}
-              className={`w-full py-3 text-[12px] tracking-[0.2em] uppercase border transition-all ${
-                !canFuse
-                  ? "border-neutral-200 text-neutral-300 cursor-not-allowed"
-                  : "border-black bg-black text-white hover:bg-white hover:text-black"
-              }`}
-            >
-              {isFusing
-                ? t("Fusing...", "Fusion en cours...")
-                : resultDataUrl
-                ? t("Regenerate", "Régénérer")
-                : t("Fuse", "Fusionner")}
-            </button>
-
-            {resultDataUrl && (
-              <button
-                type="button"
-                onClick={handleReset}
-                className="w-full py-3 border border-neutral-200 text-[12px] tracking-[0.2em] uppercase hover:border-black transition-all"
-              >
-                {t("Reset all", "Tout réinitialiser")}
-              </button>
-            )}
-          </div>
-
-          <div className="text-[11px] tracking-[0.15em] uppercase text-neutral-400 leading-relaxed">
-            {t(
-              "All processing happens in your browser.",
-              "Tout se passe dans votre navigateur."
-            )}
-          </div>
+          {settingsNode}
         </div>
       </div>
-    </main>
-  );
-}
 
-// ============ 辅助 ============
-
-function pickRandom<T>(arr: T[], n: number): T[] {
-  const copy = [...arr];
-  const out: T[] = [];
-  for (let i = 0; i < n && copy.length > 0; i++) {
-    const idx = Math.floor(Math.random() * copy.length);
-    out.push(copy.splice(idx, 1)[0]);
-  }
-  return out;
-}
-
-function computeCoverRect(
-  srcW: number,
-  srcH: number,
-  W: number,
-  H: number
-): { x: number; y: number; w: number; h: number } {
-  if (srcW <= 0 || srcH <= 0) return { x: 0, y: 0, w: W, h: H };
-  const srcRatio = srcW / srcH;
-  const dstRatio = W / H;
-  if (srcRatio > dstRatio) {
-    const h = H;
-    const w = H * srcRatio;
-    return { x: (W - w) / 2, y: 0, w, h };
-  } else {
-    const w = W;
-    const h = W / srcRatio;
-    return { x: 0, y: (H - h) / 2, w, h };
-  }
-}
+      {/* 隐藏的 file input（手机和桌面共用） */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileInput}
+      />
+    </
