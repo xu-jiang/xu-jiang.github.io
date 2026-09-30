@@ -20,4 +20,4 @@ for (const tag of TAGS) {
 
 fs.writeFileSync(path.join(ROOT, "meta.json"), JSON.stringify(meta, null, 2));
 console.log("Generated meta.json");
-for (const tag of TAGS) console.log(tag, meta[tag].length);
+for (const tag of TAGS) console.log(tag, meta[tag].length);ls public/faces/
