@@ -190,7 +190,7 @@ export default function About() {
           </div>
 
 
-          {/* 2. 第一人称心声自述 */}
+          {/* 2. 第一人称心声自述（已更新） */}
           <div
             className="
               pl-4
@@ -208,13 +208,13 @@ export default function About() {
             {lang === "FR" ? (
               <>
                 <p>
-                  « Xu Jiangqi » — on m’appelle aussi « Xuezhang ».
+                  On m'appelle aussi « Xuezhang ».
                 </p>
                 <p>
-                  À travers la photographie, j’exprime ma façon d'observer le monde. Ce site rassemble un choix d'images et de projets : un bilan autant qu'un nouveau départ.
+                  La photographie est mon lien avec le monde. Ce site rassemble une sélection d'images et de projets : à la fois un bilan d'étape et un nouveau point de départ.
                 </p>
                 <p>
-                  Sa création fait écho à une phrase du professeur Huang Yikai — du moins dans mon souvenir : « Posséder son propre site web est le tout premier pas pour qu’un photographe soit pris au sérieux. »
+                  Sa création fait écho à une phrase du professeur Huang Yikai — du moins dans mon souvenir : « Posséder son propre site web est le tout premier pas pour qu'un photographe soit pris au sérieux. »
                 </p>
                 <p>
                   Quoi qu'il en soit, ma passion pour la photographie est profondément sincère. Qu'elle demande d'aller vers l'autre ou de créer dans le silence, la démarche photographique suscite toujours en moi une vive émotion et une grande concentration. Sans une immersion totale dans l'instant, impossible de saisir une image marquante.
@@ -223,16 +223,16 @@ export default function About() {
             ) : (
               <>
                 <p>
-                  "Xu Jiangqi" — also known as "Xuezhang."
+                  I also go by "Xuezhang."
                 </p>
                 <p>
-                  I use photography to translate how I observe the world. This website gathers a selection of images and projects—a reflection on where I’ve been, and a springboard for what’s next.
+                  Photography is my connection to the world. This website gathers a selection of images and projects: a checkpoint as much as a fresh start.
                 </p>
                 <p>
-                  Its creation traces back to something Professor Huang Yikai once said—at least as I recall it: "Having your own website is the first step to being taken seriously as a photographer."
+                  Its creation echoes a phrase from Professor Huang Yikai—at least as I recall it: "Having your own website is the first step to being taken seriously as a photographer."
                 </p>
                 <p>
-                  Either way, my devotion to the craft is deeply felt. Whether it involves connecting with others or working in quiet isolation, photography always brings a wave of emotion and sharp focus. Without total immersion in the moment, capturing a striking image simply isn't possible.
+                  Either way, my devotion to the craft is deeply sincere. Whether it involves connecting with others or working in quiet isolation, the photographic process always sparks intense emotion and sharp focus. Without total immersion in the moment, capturing a truly striking image is simply impossible.
                 </p>
               </>
             )}

@@ -1,26 +1,58 @@
 // app/download/page.tsx
-import React from 'react';
-import Image from 'next/image'; // 引入 Next.js 的图片优化组件
+"use client"; // 👈 必须加上这行，因为我们需要用到交互状态
+
+import React, { useState } from 'react';
+import Image from 'next/image';
 
 export default function DownloadPage() {
-  // 这里配置你的 App 列表
+  // 定义语言状态，默认是中文 'zh'
+  const [lang, setLang] = useState<'zh' | 'en'>('zh');
+
+  // 所有页面的双语文案都提取到这里，方便统一管理
+  const t = {
+    zh: {
+      title: 'App 下载中心',
+      subtitle: '在这里下载我独立开发的 macOS 应用程序。点击下方的下载按钮，下载完成后双击 .dmg 文件即可安装。',
+      downloadBtn: '下载 macOS 版',
+      installTipTitle: '💡 安装提示：',
+      installTipContent: '如果你在打开应用时遇到“Apple 无法检查其是否包含恶意软件”或“文件已损坏”的提示，这是因为该应用未经过 Apple 官方公证。你可以在 macOS 的 系统设置 → 隐私与安全性 中找到提示，并点击 “仍要打开” 即可正常安装。',
+      version: '版本',
+      size: '大小',
+    },
+    en: {
+      title: 'App Downloads',
+      subtitle: 'Download my independently developed macOS applications here. Click the button below, then double-click the .dmg file to install.',
+      downloadBtn: 'Download for macOS',
+      installTipTitle: '💡 Installation Tip:',
+      installTipContent: 'If you encounter an "Apple cannot check it for malicious software" or "File is damaged" warning when opening the app, it is because the app is not notarized by Apple. You can find the warning in macOS System Settings → Privacy & Security, and click "Open Anyway" to install normally.',
+      version: 'Version',
+      size: 'Size',
+    }
+  };
+
+  // 当前语言的文案
+  const currentT = t[lang];
+
+  // App 数据（包含中英双语描述）
   const apps = [
     {
       name: 'Darkroom',
       version: 'v1.0.0', 
       size: '4.9 MB', 
-      description: '一款强大的照片暗房处理工具，专为摄影师和设计师打造。', 
+      descZh: '提供全面黑白胶卷冲洗数据以及计时功能的软件，并支持自定义个人冲洗配方。',
+      descEn: 'A comprehensive tool for B&W film processing data and timing, featuring support for custom personal recipes.',
       downloadUrl: '/apps/Darkroom-Installer.dmg', 
-      icon: '/apps/darkroom-icon.png', // 👈 你的 Darkroom 图标路径
+      icon: '/apps/darkroom-icon.png', 
       platform: 'macOS'
     },
     {
       name: 'Resizer',
       version: 'v1.0.0', 
       size: '2.8 MB', 
-      description: '一款简单高效的图片尺寸调整工具，快速处理批量图片。', 
+      descZh: '数秒内完成图片的批量调整格式与尺寸调整，并支持添加logo。',
+      descEn: 'Batch convert and resize images in seconds, with built-in support for adding custom logos.',
       downloadUrl: '/apps/Resizer-Installer.dmg', 
-      icon: '/apps/resizer-icon.png', // 👈 你的 Resizer 图标路径
+      icon: '/apps/resizer-icon.png', 
       platform: 'macOS'
     }
   ];
@@ -28,13 +60,30 @@ export default function DownloadPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 md:px-[2vw] pt-32 pb-24 min-h-screen">
       
-      {/* 页面标题区域 */}
-      <div className="mb-16">
-        <h1 className="text-3xl sm:text-4xl font-bold mb-4 tracking-tight uppercase">
-          App 下载中心
+      {/* 页面标题区域 + 语言切换按钮 */}
+      <div className="mb-16 relative">
+        
+        {/* 语言切换按钮（右上角） */}
+        <div className="absolute top-0 right-0 flex bg-gray-100 rounded-full p-1 text-xs font-bold tracking-wider">
+          <button
+            onClick={() => setLang('zh')}
+            className={`px-4 py-1.5 rounded-full transition-colors ${lang === 'zh' ? 'bg-white text-black shadow-sm' : 'text-gray-500 hover:text-black'}`}
+          >
+            中
+          </button>
+          <button
+            onClick={() => setLang('en')}
+            className={`px-4 py-1.5 rounded-full transition-colors ${lang === 'en' ? 'bg-white text-black shadow-sm' : 'text-gray-500 hover:text-black'}`}
+          >
+            EN
+          </button>
+        </div>
+
+        <h1 className="text-3xl sm:text-4xl font-bold mb-4 tracking-tight uppercase pr-24">
+          {currentT.title}
         </h1>
         <p className="text-gray-500 max-w-2xl text-sm sm:text-base leading-relaxed">
-          在这里下载我独立开发的 macOS 应用程序。点击下方的下载按钮，下载完成后双击 .dmg 文件即可安装。
+          {currentT.subtitle}
         </p>
       </div>
       
@@ -47,9 +96,9 @@ export default function DownloadPage() {
           >
             <div>
               {/* 卡片顶部：图标 + 名称和版本 */}
-              <div className="flex items-start gap-5 mb-5">
+              <div className="flex items-start gap-5 mb-6">
                 
-                {/* App 图标 👇 */}
+                {/* App 图标 */}
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden shrink-0 shadow-sm border border-gray-100">
                   <Image 
                     src={app.icon} 
@@ -71,16 +120,16 @@ export default function DownloadPage() {
                   
                   {/* 版本和大小信息 */}
                   <div className="text-gray-500 text-sm mt-2 flex items-center gap-3">
-                    <span>版本 {app.version}</span>
+                    <span>{currentT.version} {app.version}</span>
                     <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                    <span>{app.size}</span>
+                    <span>{currentT.size} {app.size}</span>
                   </div>
                 </div>
               </div>
               
-              {/* 应用描述 */}
+              {/* 应用描述 (根据语言状态动态切换) */}
               <p className="text-gray-700 text-sm leading-relaxed mb-8">
-                {app.description}
+                {lang === 'zh' ? app.descZh : app.descEn}
               </p>
             </div>
             
@@ -99,20 +148,17 @@ export default function DownloadPage() {
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
               </svg>
-              下载 {app.platform} 版
+              {currentT.downloadBtn}
             </a>
             
           </div>
         ))}
       </div>
       
-      {/* 底部提示 */}
+      {/* 底部安装提示 */}
       <div className="mt-16 bg-gray-50 border border-gray-100 rounded-xl p-6 text-sm text-gray-500 leading-relaxed">
-        <p className="font-semibold text-gray-700 mb-2">💡 安装提示：</p>
-        <p>
-          如果你在打开应用时遇到“Apple 无法检查其是否包含恶意软件”或“文件已损坏”的提示，这是因为该应用未经过 Apple 官方公证。
-          你可以在 macOS 的 <strong>系统设置 → 隐私与安全性</strong> 中找到提示，并点击 <strong>“仍要打开”</strong> 即可正常安装。
-        </p>
+        <p className="font-semibold text-gray-700 mb-2">{currentT.installTipTitle}</p>
+        <p>{currentT.installTipContent}</p>
       </div>
       
     </div>
