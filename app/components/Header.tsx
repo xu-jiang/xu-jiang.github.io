@@ -10,6 +10,7 @@ export default function Header() {
     { name: "PORTFOLIOS", href: "/" },
     { name: "PROJECTS", href: "/projects" },
     { name: "CONTACT", href: "/contact" },
+    { name: "APP", href: "/download" }, // 👈 新增了这一行
   ];
 
   return (
